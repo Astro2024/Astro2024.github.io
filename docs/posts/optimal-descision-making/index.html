@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="James Hetherington">
-<meta name="dcterms.date" content="2024-03-28">
-<meta name="description" content="A blog post exploring predictive variables for penguin species">
+<meta name="dcterms.date" content="2024-03-30">
+<meta name="description" content="A blog post exploring maximizing score functions for automated descision making algorithms">
 
-<title>My Awesome CSCI 0451 Blog - Classifying Palmer Penguins</title>
+<title>My Awesome CSCI 0451 Blog - Optimal Descision Making</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -171,10 +171,10 @@ background-size: cover;
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Classifying Palmer Penguins</h1>
+      <h1 class="title">Optimal Descision Making</h1>
                   <div>
         <div class="description">
-          A blog post exploring predictive variables for penguin species
+          A blog post exploring maximizing score functions for automated descision making algorithms
         </div>
       </div>
                 </div>
@@ -193,7 +193,7 @@ background-size: cover;
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">March 28, 2024</p>
+        <p class="date">March 30, 2024</p>
       </div>
     </div>
     
@@ -213,10 +213,12 @@ background-size: cover;
 
 
 <p>%load_ext autoreload %autoreload 2</p>
+<p>Introduction:</p>
+<p>There are two main purposes of this blog post. The first is to explore score maximizing functions and how to choose “optimal” thresholds for a given function. We will do this by exploring trends present in the data, testing different parameters, and error-rates to improve out thresholds. The second purpose of this blog is to uncover and learn how automated decision systems might show bias towards certain sub-segments of a population. By assessing where bias might lie in our models we can better organize our date and parameters to mitigate “unfair” advantages or disadvantages present in the model for certain members of our test population.</p>
 <h1>
 Part A:
 </h1><h1>
-<div id="cell-3" class="cell" data-execution_count="8">
+<div id="cell-4" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
@@ -231,7 +233,7 @@ Part A:
 </h1><h1>
 Part B:
 </h1><h1>
-<div id="cell-5" class="cell" data-execution_count="9">
+<div id="cell-6" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Data Preparation</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> LabelEncoder</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>le <span class="op">=</span> LabelEncoder()</span>
@@ -412,13 +414,13 @@ Part B:
 </div>
 </div>
 </div>
-<div id="cell-6" class="cell" data-execution_count="251">
+<div id="cell-7" class="cell" data-execution_count="251">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"person_age"</span>].<span class="bu">min</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="251">
 <pre><code>20</code></pre>
 </div>
 </div>
-<div id="cell-7" class="cell" data-execution_count="10">
+<div id="cell-8" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">10</span>))</span>
@@ -447,7 +449,7 @@ Part B:
 </h1><h1>
 Part C:
 </h1><h1>
-<div id="cell-9" class="cell" data-execution_count="11">
+<div id="cell-10" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> combinations</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># these are not actually all the columns: you'll </span></span>
@@ -488,7 +490,7 @@ Part C:
 0.817217444449295 ['person_home_ownership_MORTGAGE', 'person_home_ownership_OTHER', 'person_home_ownership_OWN', 'person_home_ownership_RENT', 'loan_int_rate']</code></pre>
 </div>
 </div>
-<div id="cell-10" class="cell" data-execution_count="12">
+<div id="cell-11" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>best_vars <span class="op">=</span> [<span class="st">'person_home_ownership_MORTGAGE'</span>, <span class="st">'person_home_ownership_OTHER'</span>, <span class="st">'person_home_ownership_OWN'</span>, <span class="st">'person_home_ownership_RENT'</span>, <span class="st">'loan_percent_income'</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> warnings.catch_warnings():</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span>ConvergenceWarning)</span>
@@ -502,7 +504,7 @@ Part C:
 <pre><code>array([[-0.76352014, -0.10753429, -1.80005286,  0.27250832,  8.27561064]])</code></pre>
 </div>
 </div>
-<div id="cell-11" class="cell" data-execution_count="26">
+<div id="cell-12" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_score(df, w, x):</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">sum</span> <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(x)):</span>
@@ -518,7 +520,7 @@ Part C:
 </div>
 </div>
 </div>
-<div id="cell-12" class="cell" data-execution_count="27">
+<div id="cell-13" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict(score_fun, w, x, threshold, df):</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">    make binary predictions for data df using a supplied score function with weights w and supplied threshold. </span></span>
@@ -529,7 +531,7 @@ Part C:
 </h1><h1>
 Part D:
 </h1><h1>
-<div id="cell-14" class="cell" data-execution_count="163">
+<div id="cell-15" class="cell" data-execution_count="163">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>acc <span class="op">=</span> []</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> np.linspace(lscores.<span class="bu">min</span>()<span class="op">-</span><span class="fl">.01</span>, lscores.<span class="bu">max</span>()<span class="op">+</span><span class="fl">.01</span>, <span class="dv">101</span>):</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> lscores <span class="op">&gt;=</span> t</span>
@@ -641,7 +643,7 @@ A threshold of 6.57 gives an accuracy of 0.785.
 A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 </div>
 </div>
-<div id="cell-15" class="cell" data-execution_count="112">
+<div id="cell-16" class="cell" data-execution_count="112">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize <span class="op">=</span> (<span class="dv">6</span>, <span class="dv">4</span>))</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -674,11 +676,11 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 </div>
 </div>
 </div>
-<div id="cell-16" class="cell" data-execution_count="220">
+<div id="cell-17" class="cell" data-execution_count="220">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"bank_profit_repaid"</span>] <span class="op">=</span> X_train[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_train[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">10</span> <span class="op">-</span> X_train[<span class="st">"loan_amnt"</span>]</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"bank_profit_default"</span>] <span class="op">=</span> X_train[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_train[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">3</span> <span class="op">-</span> <span class="fl">1.7</span><span class="op">*</span>X_train[<span class="st">"loan_amnt"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-17" class="cell" data-execution_count="214">
+<div id="cell-18" class="cell" data-execution_count="214">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>good_choice <span class="op">=</span> []</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>bad_choice <span class="op">=</span> []</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>prob_0 <span class="op">=</span> (confusions[<span class="dv">1</span>][<span class="dv">0</span>][<span class="dv">0</span>]<span class="op">+</span>confusions[<span class="dv">1</span>][<span class="dv">0</span>][<span class="dv">1</span>])<span class="op">/</span>confusions[<span class="dv">1</span>].<span class="bu">sum</span>()</span>
@@ -687,7 +689,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    good_choice.append(<span class="bu">float</span>(x[<span class="dv">0</span>][<span class="dv">0</span>]))</span>
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    bad_choice.append(<span class="bu">float</span>(x[<span class="dv">1</span>][<span class="dv">0</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-18" class="cell" data-execution_count="290">
+<div id="cell-19" class="cell" data-execution_count="290">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>TNR <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> FPR</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>FNR <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> TPR</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -730,7 +732,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 </div>
 </div>
 </div>
-<div id="cell-19" class="cell" data-execution_count="218">
+<div id="cell-20" class="cell" data-execution_count="218">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.plot(T, acc)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>annot_max(T, np.array(acc))</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>plt.gca().<span class="bu">set</span>(ylim <span class="op">=</span> (<span class="dv">0</span>, <span class="dv">1</span>), xlim <span class="op">=</span> (<span class="op">-</span><span class="dv">2</span>, <span class="dv">7</span>))</span>
@@ -746,7 +748,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 <p>In this section I created a gain function using the average gain on a fully repaid loan and the average loss on a defaulted loan. After examining the expected gain function we were given in class, I felt like it did not provide us with any substantial information gain, so I researched expected value functions and found a version of the in-class function that was normalized. The two graphs above show the optimal threshold for accuracy and expected profit per loan. For both the maximizing threshold was 2.806 and it brought our accuracy up to 85.3% and our expected profit per loan to $1614.14.</p>
 </h1><h1>
 <p>Part: E</p>
-<div id="cell-22" class="cell" data-execution_count="291">
+<div id="cell-23" class="cell" data-execution_count="291">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/credit-risk/test.csv"</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span> pd.read_csv(url)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -784,7 +786,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 <pre><code>1605.4481388536585</code></pre>
 </div>
 </div>
-<div id="cell-23" class="cell" data-execution_count="231">
+<div id="cell-24" class="cell" data-execution_count="231">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="op">-</span> <span class="fl">1605.448</span><span class="op">/</span><span class="fl">1614.137</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="231">
 <pre><code>0.005383062280339135</code></pre>
@@ -793,7 +795,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 <p>The expected gain for the test data set is very close to our train data set. The training set was 1614.137 and our test set is 1605.448. That is only a $8.69 difference. From the banks perspective the weights and threshold we selected were only .5% off which is pretty good.</p>
 </h1><h1>
 <p>Part F:</p>
-<div id="cell-26" class="cell" data-execution_count="273">
+<div id="cell-27" class="cell" data-execution_count="273">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#sns.catplot(data=df_test, kind="bar", x="person_age", y="test_predicted")</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#sns.scatterplot(df_test, x = "person_age", y = "test_predicted")</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -809,7 +811,7 @@ A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
 </div>
 </div>
 </div>
-<div id="cell-27" class="cell" data-execution_count="275">
+<div id="cell-28" class="cell" data-execution_count="275">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>intent_predicted <span class="op">=</span> df_test.groupby(<span class="st">"loan_intent"</span>).aggregate(<span class="st">"test_predicted"</span>).mean()</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>intent_real <span class="op">=</span> df_test.groupby(<span class="st">"loan_intent"</span>).aggregate(<span class="st">"loan_status"</span>).mean()</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(intent_predicted)</span>
@@ -833,7 +835,7 @@ VENTURE              0.145701
 Name: loan_status, dtype: float64</code></pre>
 </div>
 </div>
-<div id="cell-28" class="cell" data-execution_count="286">
+<div id="cell-29" class="cell" data-execution_count="286">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"mean"</span>, df_test.groupby(<span class="st">"test_predicted"</span>).aggregate(<span class="st">"person_income"</span>).mean())</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"median"</span>, df_test.groupby(<span class="st">"test_predicted"</span>).aggregate(<span class="st">"person_income"</span>).median())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -863,6 +865,10 @@ Name: person_income, dtype: float64</code></pre>
 </ol>
 </h1><h1>
 <p>Part G:</p>
+<p>Conclusion:</p>
+<p>At the start of this blog I set out to accomplish two main goals. The first was to explore score maximizing functions and how to choose “optimal” thresholds for a given function. The second was to uncover and learn how automated decision systems might show bias towards certain sub-segments of a population. Now that we have arrived at the concluding part of the assignment I can happily say I have completed both of my goals.</p>
+<p>In this blog I looked to define an automated decision system for a hypothetical bank extending credit and worked to predict the expected profit said bank using a variety of different parameters with a score function and a threshold. Through all my testing I would that the “optimal” parameters and threshold for expected profits were the catagories;‘person_home_ownership_MORTGAGE’, ‘person_home_ownership_OTHER’, ‘person_home_ownership_OWN’, ‘person_home_ownership_RENT’, and ‘loan_percent_income’ paired with a threshold of 2.806. Using these two values the expected average profit per loan for the bank was $1614.137.</p>
+<p>After maximizing my expected return function and threshold, I looked through my results to answer my second question: Is/Where is there bias in my automated decision system, who does it affect and how? The answer to the first part is, yes, there is definitely bias in my model. It is easier to get a loan the older and richer you are, and depending on what you are trying to get a loan for you will have a more difficult time getting a loan. Now, I do want to briefly preface the following comments by noting, although my model shows a bias towards certain types of loan intent, across the board my model is much more lenient in its prediction of default than the actual rates (I am not commenting on if this is good or bad). The hardest type of loan to be approved for is medical loans because they tend to have the highest default rate. I would love to explore the cause of this further because I imagine a pretty strong correlation between needing a medical loan and having a lower income. So independent of income how skewed is the data? Also, is it possible that the reason people default on medical loans on average at a higher rate because the more expensive operations have a higher mortality rate and thus people cannot pay back the loan? If this conjecture is true then is it truly fair to make it more difficult for people to get medical loans based on other peoples death? I’d wager that the longer someone has to wait for a surgery due to insufficient funds the higher their own risk of death is. On the other hand, should a bank be the one forced to take on the extra financial risk of a sick/hurt person or should the insurance/medical/governmental systems bare more of the financial burden? Personally, I think the current system places and undeserved burden both on the patient and financial institution. I would love to participate in further analysis on this topic to help answer these questions.</p>
 
 
 
