@@ -3,6 +3,8 @@
     "listing": "/index.html",
     "items": [
       "/posts/goal-setting/index.html",
+      "/posts/logistic-regression/index.html",
+      "/posts/recreating-compas/index.html",
       "/posts/mid-course/index.html",
       "/posts/optimal-descision-making/index.html",
       "/posts/classifying-palmer-penguins/index.html",
