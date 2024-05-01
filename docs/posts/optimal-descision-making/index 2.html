@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.550">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="James Hetherington">
+<meta name="dcterms.date" content="2024-03-30">
+<meta name="description" content="A blog post exploring maximizing score functions for automated descision making algorithms">
+
+<title>My Awesome CSCI 0451 Blog - Optimal Descision Making</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: white;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: white;
+background-image: url(../../img/landscape.png);
+background-size: cover;
+      }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">My Awesome CSCI 0451 Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Optimal Descision Making</h1>
+                  <div>
+        <div class="description">
+          A blog post exploring maximizing score functions for automated descision making algorithms
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>James Hetherington </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 30, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>%load_ext autoreload %autoreload 2</p>
+<p>Introduction:</p>
+<p>There are two main purposes of this blog post. The first is to explore score maximizing functions and how to choose “optimal” thresholds for a given function. We will do this by exploring trends present in the data, testing different parameters, and error-rates to improve out thresholds. The second purpose of this blog is to uncover and learn how automated decision systems might show bias towards certain sub-segments of a population. By assessing where bias might lie in our models we can better organize our date and parameters to mitigate “unfair” advantages or disadvantages present in the model for certain members of our test population.</p>
+<h1>
+Part A:
+</h1><h1>
+<div id="cell-4" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC <span class="co"># support vector classifier</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlxtend.plotting <span class="im">import</span> plot_decision_regions <span class="co"># for visualization later</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/credit-risk/train.csv"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>df_train <span class="op">=</span> pd.read_csv(url)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</h1><h1>
+Part B:
+</h1><h1>
+<div id="cell-6" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Data Preparation</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> LabelEncoder</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>le <span class="op">=</span> LabelEncoder()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>le.fit(df_train[<span class="st">'person_home_ownership'</span>])</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>l <span class="op">=</span> LabelEncoder()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>l.fit(df_train[<span class="st">'loan_intent'</span>])</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>ld <span class="op">=</span> LabelEncoder()</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>ld.fit(df_train[<span class="st">'loan_grade'</span>])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prepare_data(df):</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.dropna()</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  y <span class="op">=</span> df[<span class="st">'loan_status'</span>]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#df["home_ownership"] = df["person_home_ownership"]</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">#df = df.drop(["loan_status"], axis = 1)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> pd.get_dummies(df)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> df, y</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>X_train, y_train <span class="op">=</span> prepare_data(df_train)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>X_train.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_MORTGAGE</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_OTHER</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">loan_intent_VENTURE</th>
+<th data-quarto-table-cell-role="th">loan_grade_A</th>
+<th data-quarto-table-cell-role="th">loan_grade_B</th>
+<th data-quarto-table-cell-role="th">loan_grade_C</th>
+<th data-quarto-table-cell-role="th">loan_grade_D</th>
+<th data-quarto-table-cell-role="th">loan_grade_E</th>
+<th data-quarto-table-cell-role="th">loan_grade_F</th>
+<th data-quarto-table-cell-role="th">loan_grade_G</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_N</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>27</td>
+<td>98000</td>
+<td>3.0</td>
+<td>11750</td>
+<td>13.47</td>
+<td>0</td>
+<td>0.12</td>
+<td>6</td>
+<td>False</td>
+<td>False</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2</td>
+<td>22</td>
+<td>36996</td>
+<td>5.0</td>
+<td>10000</td>
+<td>7.51</td>
+<td>0</td>
+<td>0.27</td>
+<td>4</td>
+<td>False</td>
+<td>False</td>
+<td>...</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">3</td>
+<td>24</td>
+<td>26000</td>
+<td>2.0</td>
+<td>1325</td>
+<td>12.87</td>
+<td>1</td>
+<td>0.05</td>
+<td>4</td>
+<td>False</td>
+<td>False</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">4</td>
+<td>29</td>
+<td>53004</td>
+<td>2.0</td>
+<td>15000</td>
+<td>9.63</td>
+<td>0</td>
+<td>0.28</td>
+<td>10</td>
+<td>True</td>
+<td>False</td>
+<td>...</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>21</td>
+<td>21700</td>
+<td>2.0</td>
+<td>5500</td>
+<td>14.91</td>
+<td>1</td>
+<td>0.25</td>
+<td>2</td>
+<td>False</td>
+<td>False</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 27 columns</p>
+</div>
+</div>
+</div>
+</div>
+<div id="cell-7" class="cell" data-execution_count="251">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"person_age"</span>].<span class="bu">min</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="251">
+<pre><code>20</code></pre>
+</div>
+</div>
+<div id="cell-8" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">10</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>p1 <span class="op">=</span> sns.scatterplot(df_train, x <span class="op">=</span> <span class="st">"person_age"</span>, y <span class="op">=</span> <span class="st">"person_income"</span>, hue <span class="op">=</span> <span class="st">"loan_status"</span>, ax <span class="op">=</span> ax[<span class="dv">0</span>,<span class="dv">0</span>])</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>p2 <span class="op">=</span> sns.scatterplot(df_train, x <span class="op">=</span> <span class="st">"loan_intent"</span>, y <span class="op">=</span> <span class="st">"person_emp_length"</span>, hue <span class="op">=</span> <span class="st">"loan_status"</span>, ax <span class="op">=</span> ax[<span class="dv">0</span>,<span class="dv">1</span>])</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>p3 <span class="op">=</span> sns.scatterplot(df_train, x <span class="op">=</span> <span class="st">"loan_amnt"</span>, y <span class="op">=</span> <span class="st">"loan_int_rate"</span>, hue <span class="op">=</span> <span class="st">"loan_status"</span>, ax <span class="op">=</span> ax[<span class="dv">1</span>,<span class="dv">0</span>])</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>p4 <span class="op">=</span> sns.scatterplot(df_train, x <span class="op">=</span> <span class="st">"loan_percent_income"</span>, y <span class="op">=</span> <span class="st">"cb_person_cred_hist_length"</span>, hue <span class="op">=</span> <span class="st">"loan_status"</span>, ax <span class="op">=</span> ax[<span class="dv">1</span>,<span class="dv">1</span>])</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>p5 <span class="op">=</span> sns.catplot(data<span class="op">=</span>df_train, kind<span class="op">=</span><span class="st">"bar"</span>, x<span class="op">=</span><span class="st">"person_home_ownership"</span>, y<span class="op">=</span><span class="st">"loan_amnt"</span>, hue<span class="op">=</span><span class="st">"loan_status"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#p6 = sns.displot(df_train, x="loan_int_rate", col="loan_status", row="person_home_ownership")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-5-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</h1><h1>
+Part C:
+</h1><h1>
+<div id="cell-10" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> combinations</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># these are not actually all the columns: you'll </span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># need to add any of the other ones you want to search for</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>all_qual_cols <span class="op">=</span> [<span class="st">'person_home_ownership'</span>, <span class="st">'loan_intent'</span>, <span class="st">'cb_person_default_on_file'</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>all_quant_cols <span class="op">=</span> [<span class="st">'person_age'</span>, <span class="st">'person_income'</span>, <span class="st">'person_emp_length'</span>, <span class="st">'loan_amnt'</span>, <span class="st">'loan_int_rate'</span>, <span class="st">'loan_percent_income'</span>, <span class="st">'cb_person_cred_hist_length'</span>]</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> []</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qual <span class="kw">in</span> combinations(all_qual_cols, <span class="dv">1</span>): </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  qual_cols1 <span class="op">=</span> [col <span class="cf">for</span> col <span class="kw">in</span> X_train.columns <span class="cf">if</span> qual[<span class="dv">0</span>] <span class="kw">in</span> col ]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#qual_cols2 = [col for col in X_train.columns if qual[1] in col ]</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">#qual_cols3 = [col for col in X_train.columns if qual[2] in col ]</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> pair <span class="kw">in</span> combinations(all_quant_cols, <span class="dv">1</span>):</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> qual_cols1 <span class="op">+</span> <span class="bu">list</span>(pair) </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#cols = qual_cols1 + qual_cols2 + list(pair) </span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">#cols = qual_cols1 + qual_cols2 + qual_cols3 + list(pair) </span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    columns.append(cols) </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">#Finds the best pairing of variables</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>best1 <span class="op">=</span> ([], <span class="dv">0</span>)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>best2 <span class="op">=</span> ([], <span class="dv">0</span>)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.exceptions <span class="im">import</span> ConvergenceWarning</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> x <span class="kw">in</span> columns:</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> warnings.catch_warnings():</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span>ConvergenceWarning)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        X_train1 <span class="op">=</span> X_train[x]</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        LR <span class="op">=</span> LogisticRegression()</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> LR.fit(X_train1, y_train)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> LR.score(X_train1, y_train)</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> score <span class="op">&gt;</span> best1[<span class="dv">1</span>]:</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>            best2 <span class="op">=</span> best1</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>            best1 <span class="op">=</span> (x, score)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> score <span class="op">==</span> best1[<span class="dv">1</span>]:</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(x, score)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(best1[<span class="dv">1</span>], best1[<span class="dv">0</span>])</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(best2[<span class="dv">1</span>], best2[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.8492600515126381 ['person_home_ownership_MORTGAGE', 'person_home_ownership_OTHER', 'person_home_ownership_OWN', 'person_home_ownership_RENT', 'loan_percent_income']
+0.817217444449295 ['person_home_ownership_MORTGAGE', 'person_home_ownership_OTHER', 'person_home_ownership_OWN', 'person_home_ownership_RENT', 'loan_int_rate']</code></pre>
+</div>
+</div>
+<div id="cell-11" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>best_vars <span class="op">=</span> [<span class="st">'person_home_ownership_MORTGAGE'</span>, <span class="st">'person_home_ownership_OTHER'</span>, <span class="st">'person_home_ownership_OWN'</span>, <span class="st">'person_home_ownership_RENT'</span>, <span class="st">'loan_percent_income'</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> warnings.catch_warnings():</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span>ConvergenceWarning)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        X_train1 <span class="op">=</span> X_train[best_vars]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        LR <span class="op">=</span> LogisticRegression()</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> LR.fit(X_train1, y_train)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> LR.score(X_train1, y_train)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> LR.coef_</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>weights</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>array([[-0.76352014, -0.10753429, -1.80005286,  0.27250832,  8.27561064]])</code></pre>
+</div>
+</div>
+<div id="cell-12" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_score(df, w, x):</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">sum</span> <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(x)):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">sum</span> <span class="op">+=</span> w[<span class="dv">0</span>][i]<span class="op">*</span>df[x[i]]</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>lscores <span class="op">=</span> linear_score(X_train, weights, best_vars)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>hist <span class="op">=</span> plt.hist(lscores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-13" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict(score_fun, w, x, threshold, df):</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">    make binary predictions for data df using a supplied score function with weights w and supplied threshold. </span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> score_fun(df, w, x)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">*</span>(scores <span class="op">&gt;</span> threshold)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</h1><h1>
+Part D:
+</h1><h1>
+<div id="cell-15" class="cell" data-execution_count="163">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>acc <span class="op">=</span> []</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> np.linspace(lscores.<span class="bu">min</span>()<span class="op">-</span><span class="fl">.01</span>, lscores.<span class="bu">max</span>()<span class="op">+</span><span class="fl">.01</span>, <span class="dv">101</span>):</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> lscores <span class="op">&gt;=</span> t</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    ac <span class="op">=</span> (y_pred <span class="op">==</span> y_train).mean()</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    acc <span class="op">=</span> acc <span class="op">+</span> [(y_pred <span class="op">==</span> y_train).mean()]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"A threshold of </span><span class="sc">{</span>t<span class="sc">:.2f}</span><span class="ss"> gives an accuracy of </span><span class="sc">{</span>ac<span class="sc">:.3f}</span><span class="ss">."</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">#2.6 - 2.8 best threshold for accuracy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>A threshold of -1.73 gives an accuracy of 0.215.
+A threshold of -1.64 gives an accuracy of 0.215.
+A threshold of -1.56 gives an accuracy of 0.216.
+A threshold of -1.48 gives an accuracy of 0.218.
+A threshold of -1.39 gives an accuracy of 0.220.
+A threshold of -1.31 gives an accuracy of 0.223.
+A threshold of -1.22 gives an accuracy of 0.225.
+A threshold of -1.14 gives an accuracy of 0.228.
+A threshold of -1.06 gives an accuracy of 0.230.
+A threshold of -0.97 gives an accuracy of 0.233.
+A threshold of -0.89 gives an accuracy of 0.239.
+A threshold of -0.81 gives an accuracy of 0.242.
+A threshold of -0.72 gives an accuracy of 0.245.
+A threshold of -0.64 gives an accuracy of 0.250.
+A threshold of -0.55 gives an accuracy of 0.258.
+A threshold of -0.47 gives an accuracy of 0.271.
+A threshold of -0.39 gives an accuracy of 0.286.
+A threshold of -0.30 gives an accuracy of 0.305.
+A threshold of -0.22 gives an accuracy of 0.323.
+A threshold of -0.13 gives an accuracy of 0.342.
+A threshold of -0.05 gives an accuracy of 0.359.
+A threshold of 0.03 gives an accuracy of 0.375.
+A threshold of 0.12 gives an accuracy of 0.392.
+A threshold of 0.20 gives an accuracy of 0.409.
+A threshold of 0.28 gives an accuracy of 0.425.
+A threshold of 0.37 gives an accuracy of 0.443.
+A threshold of 0.45 gives an accuracy of 0.459.
+A threshold of 0.54 gives an accuracy of 0.482.
+A threshold of 0.62 gives an accuracy of 0.502.
+A threshold of 0.70 gives an accuracy of 0.525.
+A threshold of 0.79 gives an accuracy of 0.545.
+A threshold of 0.87 gives an accuracy of 0.568.
+A threshold of 0.95 gives an accuracy of 0.592.
+A threshold of 1.04 gives an accuracy of 0.614.
+A threshold of 1.12 gives an accuracy of 0.637.
+A threshold of 1.21 gives an accuracy of 0.657.
+A threshold of 1.29 gives an accuracy of 0.679.
+A threshold of 1.37 gives an accuracy of 0.701.
+A threshold of 1.46 gives an accuracy of 0.717.
+A threshold of 1.54 gives an accuracy of 0.733.
+A threshold of 1.63 gives an accuracy of 0.745.
+A threshold of 1.71 gives an accuracy of 0.759.
+A threshold of 1.79 gives an accuracy of 0.770.
+A threshold of 1.88 gives an accuracy of 0.781.
+A threshold of 1.96 gives an accuracy of 0.794.
+A threshold of 2.04 gives an accuracy of 0.805.
+A threshold of 2.13 gives an accuracy of 0.812.
+A threshold of 2.21 gives an accuracy of 0.821.
+A threshold of 2.30 gives an accuracy of 0.827.
+A threshold of 2.38 gives an accuracy of 0.835.
+A threshold of 2.46 gives an accuracy of 0.838.
+A threshold of 2.55 gives an accuracy of 0.843.
+A threshold of 2.63 gives an accuracy of 0.846.
+A threshold of 2.72 gives an accuracy of 0.849.
+A threshold of 2.80 gives an accuracy of 0.853.
+A threshold of 2.88 gives an accuracy of 0.847.
+A threshold of 2.97 gives an accuracy of 0.841.
+A threshold of 3.05 gives an accuracy of 0.834.
+A threshold of 3.13 gives an accuracy of 0.829.
+A threshold of 3.22 gives an accuracy of 0.825.
+A threshold of 3.30 gives an accuracy of 0.820.
+A threshold of 3.39 gives an accuracy of 0.818.
+A threshold of 3.47 gives an accuracy of 0.814.
+A threshold of 3.55 gives an accuracy of 0.811.
+A threshold of 3.64 gives an accuracy of 0.806.
+A threshold of 3.72 gives an accuracy of 0.804.
+A threshold of 3.80 gives an accuracy of 0.801.
+A threshold of 3.89 gives an accuracy of 0.799.
+A threshold of 3.97 gives an accuracy of 0.797.
+A threshold of 4.06 gives an accuracy of 0.796.
+A threshold of 4.14 gives an accuracy of 0.795.
+A threshold of 4.22 gives an accuracy of 0.793.
+A threshold of 4.31 gives an accuracy of 0.792.
+A threshold of 4.39 gives an accuracy of 0.791.
+A threshold of 4.48 gives an accuracy of 0.790.
+A threshold of 4.56 gives an accuracy of 0.789.
+A threshold of 4.64 gives an accuracy of 0.788.
+A threshold of 4.73 gives an accuracy of 0.788.
+A threshold of 4.81 gives an accuracy of 0.787.
+A threshold of 4.89 gives an accuracy of 0.787.
+A threshold of 4.98 gives an accuracy of 0.787.
+A threshold of 5.06 gives an accuracy of 0.787.
+A threshold of 5.15 gives an accuracy of 0.787.
+A threshold of 5.23 gives an accuracy of 0.786.
+A threshold of 5.31 gives an accuracy of 0.786.
+A threshold of 5.40 gives an accuracy of 0.786.
+A threshold of 5.48 gives an accuracy of 0.786.
+A threshold of 5.57 gives an accuracy of 0.786.
+A threshold of 5.65 gives an accuracy of 0.785.
+A threshold of 5.73 gives an accuracy of 0.785.
+A threshold of 5.82 gives an accuracy of 0.785.
+A threshold of 5.90 gives an accuracy of 0.785.
+A threshold of 5.98 gives an accuracy of 0.785.
+A threshold of 6.07 gives an accuracy of 0.785.
+A threshold of 6.15 gives an accuracy of 0.785.
+A threshold of 6.24 gives an accuracy of 0.785.
+A threshold of 6.32 gives an accuracy of 0.785.
+A threshold of 6.40 gives an accuracy of 0.785.
+A threshold of 6.49 gives an accuracy of 0.785.
+A threshold of 6.57 gives an accuracy of 0.785.
+A threshold of 6.65 gives an accuracy of 0.785.</code></pre>
+</div>
+</div>
+<div id="cell-16" class="cell" data-execution_count="112">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize <span class="op">=</span> (<span class="dv">6</span>, <span class="dv">4</span>))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>num_thresholds <span class="op">=</span> <span class="dv">101</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>FPR <span class="op">=</span> np.zeros(num_thresholds)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>TPR <span class="op">=</span> np.zeros(num_thresholds)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>confusions <span class="op">=</span> []</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> np.linspace(lscores.<span class="bu">min</span>()<span class="op">-</span><span class="fl">0.1</span>, lscores.<span class="bu">max</span>()<span class="op">+</span><span class="fl">0.1</span>, num_thresholds)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> linear_score(X_train, weights, best_vars)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_thresholds):</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> T[i]</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    preds <span class="op">=</span> s <span class="op">&gt;=</span> t</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    FPR[i] <span class="op">=</span> ((preds <span class="op">==</span> <span class="dv">1</span>) <span class="op">&amp;</span> (y_train <span class="op">==</span> <span class="dv">0</span>)).<span class="bu">sum</span>() <span class="op">/</span> (y_train <span class="op">==</span> <span class="dv">0</span>).<span class="bu">sum</span>()</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    TPR[i] <span class="op">=</span> ((preds <span class="op">==</span> <span class="dv">1</span>) <span class="op">&amp;</span> (y_train <span class="op">==</span> <span class="dv">1</span>)).<span class="bu">sum</span>() <span class="op">/</span> (y_train <span class="op">==</span> <span class="dv">1</span>).<span class="bu">sum</span>()</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    confusions.append(confusion_matrix(y_train, preds))</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>ax.plot(FPR, TPR, color <span class="op">=</span> <span class="st">"black"</span>)</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>ax.plot([<span class="dv">0</span>,<span class="dv">1</span>], [<span class="dv">0</span>,<span class="dv">1</span>], linestyle<span class="op">=</span><span class="st">"--"</span>, color <span class="op">=</span> <span class="st">"grey"</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>ax.set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> ax.<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"False Positive Rate"</span>, ylabel <span class="op">=</span> <span class="st">"True Positive Rate"</span>, title <span class="op">=</span> <span class="st">"ROC Curve"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-17" class="cell" data-execution_count="220">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"bank_profit_repaid"</span>] <span class="op">=</span> X_train[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_train[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">10</span> <span class="op">-</span> X_train[<span class="st">"loan_amnt"</span>]</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>X_train[<span class="st">"bank_profit_default"</span>] <span class="op">=</span> X_train[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_train[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">3</span> <span class="op">-</span> <span class="fl">1.7</span><span class="op">*</span>X_train[<span class="st">"loan_amnt"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-18" class="cell" data-execution_count="214">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>good_choice <span class="op">=</span> []</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>bad_choice <span class="op">=</span> []</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>prob_0 <span class="op">=</span> (confusions[<span class="dv">1</span>][<span class="dv">0</span>][<span class="dv">0</span>]<span class="op">+</span>confusions[<span class="dv">1</span>][<span class="dv">0</span>][<span class="dv">1</span>])<span class="op">/</span>confusions[<span class="dv">1</span>].<span class="bu">sum</span>()</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>prob_1 <span class="op">=</span> (confusions[<span class="dv">1</span>][<span class="dv">1</span>][<span class="dv">0</span>]<span class="op">+</span>confusions[<span class="dv">1</span>][<span class="dv">1</span>][<span class="dv">1</span>])<span class="op">/</span>confusions[<span class="dv">1</span>].<span class="bu">sum</span>()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> x <span class="kw">in</span> confusions:</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    good_choice.append(<span class="bu">float</span>(x[<span class="dv">0</span>][<span class="dv">0</span>]))</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    bad_choice.append(<span class="bu">float</span>(x[<span class="dv">1</span>][<span class="dv">0</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-19" class="cell" data-execution_count="290">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>TNR <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> FPR</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>FNR <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> TPR</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>cost_of_FN <span class="op">=</span> X_train[<span class="st">"bank_profit_default"</span>]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>gain_of_TN <span class="op">=</span> X_train[<span class="st">"bank_profit_repaid"</span>]</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#This has the same maximum as the equation below, however it does not show the E[] per loan</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#gain =  gain_of_TN.mean()*np.array(good_choice)  + cost_of_FN.mean()*np.array(bad_choice)</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"># I was looking at the fourth set of notes from class and was confused at the equation we were using to calculate gain.</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># It did not seem to give us any useful information gain, so I figured there might be an error. I look online and found</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co"># a gain equation that was what was mentioned in class but now normalized (https://medium.com/@overfittedcat/expected-value-as-evaluation-metric-in-machine-learning-b3836511cd)</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>gain <span class="op">=</span> prob_0<span class="op">*</span>(gain_of_TN.mean() <span class="op">*</span> TNR) <span class="op">+</span> prob_1<span class="op">*</span>(cost_of_FN.mean() <span class="op">*</span> FNR)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Gain function from notes</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co">#gain = (gain_of_TN.mean() * TNR) + (cost_of_FN.mean() * FNR)</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>plt.plot(T, gain)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="co">#The following function I found online for annotating the maximum point</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> annot_max(x,y, ax<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    xmax <span class="op">=</span> x[np.argmax(y)]</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    ymax <span class="op">=</span> y.<span class="bu">max</span>()</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    text<span class="op">=</span> <span class="st">"x=</span><span class="sc">{:.3f}</span><span class="st">, y=</span><span class="sc">{:.3f}</span><span class="st">"</span>.<span class="bu">format</span>(xmax, ymax)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> ax:</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>        ax<span class="op">=</span>plt.gca()</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    bbox_props <span class="op">=</span> <span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"square,pad=0.3"</span>, fc<span class="op">=</span><span class="st">"w"</span>, ec<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.72</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">"-&gt;"</span>,connectionstyle<span class="op">=</span><span class="st">"angle,angleA=0,angleB=60"</span>)</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    kw <span class="op">=</span> <span class="bu">dict</span>(xycoords<span class="op">=</span><span class="st">'data'</span>,textcoords<span class="op">=</span><span class="st">"axes fraction"</span>,</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>              arrowprops<span class="op">=</span>arrowprops, bbox<span class="op">=</span>bbox_props, ha<span class="op">=</span><span class="st">"right"</span>, va<span class="op">=</span><span class="st">"top"</span>)</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    ax.annotate(text, xy<span class="op">=</span>(xmax, ymax), xytext<span class="op">=</span>(<span class="fl">0.94</span>,<span class="fl">0.96</span>), <span class="op">**</span>kw)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>annot_max(T,gain)</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>plt.gca().<span class="bu">set</span>(ylim <span class="op">=</span> (<span class="op">-</span><span class="dv">300</span>, <span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="op">-</span><span class="dv">2</span>, <span class="dv">7</span>))</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="vs">r"Threshold $t$"</span>, ylabel <span class="op">=</span> <span class="st">"Expected profit per loan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-20" class="cell" data-execution_count="218">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.plot(T, acc)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>annot_max(T, np.array(acc))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>plt.gca().<span class="bu">set</span>(ylim <span class="op">=</span> (<span class="dv">0</span>, <span class="dv">1</span>), xlim <span class="op">=</span> (<span class="op">-</span><span class="dv">2</span>, <span class="dv">7</span>))</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="vs">r"Threshold $t$"</span>, ylabel <span class="op">=</span> <span class="st">"Accuracy"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this section I created a gain function using the average gain on a fully repaid loan and the average loss on a defaulted loan. After examining the expected gain function we were given in class, I felt like it did not provide us with any substantial information gain, so I researched expected value functions and found a version of the in-class function that was normalized. The two graphs above show the optimal threshold for accuracy and expected profit per loan. For both the maximizing threshold was 2.806 and it brought our accuracy up to 85.3% and our expected profit per loan to $1614.14.</p>
+</h1><h1>
+<p>Part: E</p>
+<div id="cell-23" class="cell" data-execution_count="291">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/credit-risk/test.csv"</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span> pd.read_csv(url)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>X_test, y_test <span class="op">=</span> prepare_data(df_test)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>X_test[<span class="st">"bank_profit_repaid"</span>] <span class="op">=</span> X_test[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_test[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">10</span> <span class="op">-</span> X_test[<span class="st">"loan_amnt"</span>]</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>X_test[<span class="st">"bank_profit_default"</span>] <span class="op">=</span> X_test[<span class="st">"loan_amnt"</span>]<span class="op">*</span>(<span class="dv">1</span> <span class="op">+</span> <span class="fl">0.25</span><span class="op">*</span>(X_test[<span class="st">"loan_int_rate"</span>]<span class="op">/</span><span class="dv">100</span>))<span class="op">**</span><span class="dv">3</span> <span class="op">-</span> <span class="fl">1.7</span><span class="op">*</span>X_test[<span class="st">"loan_amnt"</span>]</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>y_predicted <span class="op">=</span> predict(linear_score, weights, best_vars, <span class="fl">2.806</span>, X_test)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">"test_predicted"</span>] <span class="op">=</span> y_predicted</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>invert <span class="op">=</span> (y_predicted <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">2</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>gaint <span class="op">=</span> (X_test[<span class="st">"bank_profit_default"</span>] <span class="op">*</span> y_predicted) <span class="op">+</span> (X_test[<span class="st">"bank_profit_repaid"</span>] <span class="op">*</span> invert)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(gaint.mean())</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>FPR1   <span class="op">=</span> ((y_predicted <span class="op">==</span> <span class="dv">1</span>) <span class="op">&amp;</span> (y_test <span class="op">==</span> <span class="dv">0</span>)).<span class="bu">sum</span>() <span class="op">/</span> (y_test <span class="op">==</span> <span class="dv">0</span>).<span class="bu">sum</span>()</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>TPR1   <span class="op">=</span> ((y_predicted <span class="op">==</span> <span class="dv">1</span>) <span class="op">&amp;</span> (y_test <span class="op">==</span> <span class="dv">1</span>)).<span class="bu">sum</span>() <span class="op">/</span> (y_test <span class="op">==</span> <span class="dv">1</span>).<span class="bu">sum</span>()</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>TNR1 <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> FPR1</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>FNR1 <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> TPR1</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>confuse <span class="op">=</span> confusion_matrix(y_test, y_predicted)</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>prob_zero <span class="op">=</span> (confuse[<span class="dv">0</span>][<span class="dv">0</span>]<span class="op">+</span>confuse[<span class="dv">0</span>][<span class="dv">1</span>])<span class="op">/</span>confuse.<span class="bu">sum</span>()</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>prob_one <span class="op">=</span> (confuse[<span class="dv">1</span>][<span class="dv">0</span>]<span class="op">+</span>confuse[<span class="dv">1</span>][<span class="dv">1</span>])<span class="op">/</span>confuse.<span class="bu">sum</span>()</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>gain_test <span class="op">=</span> prob_zero<span class="op">*</span>(X_test[<span class="st">"bank_profit_repaid"</span>].mean() <span class="op">*</span> TNR1) <span class="op">+</span> prob_one<span class="op">*</span>(X_test[<span class="st">"bank_profit_default"</span>].mean() <span class="op">*</span> FNR1)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>gain_test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1966.832456892238</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="291">
+<pre><code>1605.4481388536585</code></pre>
+</div>
+</div>
+<div id="cell-24" class="cell" data-execution_count="231">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="op">-</span> <span class="fl">1605.448</span><span class="op">/</span><span class="fl">1614.137</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="231">
+<pre><code>0.005383062280339135</code></pre>
+</div>
+</div>
+<p>The expected gain for the test data set is very close to our train data set. The training set was 1614.137 and our test set is 1605.448. That is only a $8.69 difference. From the banks perspective the weights and threshold we selected were only .5% off which is pretty good.</p>
+</h1><h1>
+<p>Part F:</p>
+<div id="cell-27" class="cell" data-execution_count="273">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#sns.catplot(data=df_test, kind="bar", x="person_age", y="test_predicted")</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#sns.scatterplot(df_test, x = "person_age", y = "test_predicted")</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>tr <span class="op">=</span> df_test.groupby(<span class="st">"person_age"</span>).aggregate(<span class="st">"test_predicted"</span>).mean()</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(tr)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-28" class="cell" data-execution_count="275">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>intent_predicted <span class="op">=</span> df_test.groupby(<span class="st">"loan_intent"</span>).aggregate(<span class="st">"test_predicted"</span>).mean()</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>intent_real <span class="op">=</span> df_test.groupby(<span class="st">"loan_intent"</span>).aggregate(<span class="st">"loan_status"</span>).mean()</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(intent_predicted)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(intent_real)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>loan_intent
+DEBTCONSOLIDATION    0.095133
+EDUCATION            0.075680
+HOMEIMPROVEMENT      0.037338
+MEDICAL              0.102516
+PERSONAL             0.087174
+VENTURE              0.079876
+Name: test_predicted, dtype: float64
+loan_intent
+DEBTCONSOLIDATION    0.279497
+EDUCATION            0.167421
+HOMEIMPROVEMENT      0.246088
+MEDICAL              0.281553
+PERSONAL             0.219227
+VENTURE              0.145701
+Name: loan_status, dtype: float64</code></pre>
+</div>
+</div>
+<div id="cell-29" class="cell" data-execution_count="286">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"mean"</span>, df_test.groupby(<span class="st">"test_predicted"</span>).aggregate(<span class="st">"person_income"</span>).mean())</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"median"</span>, df_test.groupby(<span class="st">"test_predicted"</span>).aggregate(<span class="st">"person_income"</span>).median())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mean test_predicted
+0.0    69033.762122
+1.0    39483.673729
+Name: person_income, dtype: float64
+median test_predicted
+0.0    58700.0
+1.0    36000.0
+Name: person_income, dtype: float64</code></pre>
+</div>
+</div>
+<ol type="1">
+<li>Is it more difficult for people in certain age groups to access credit under your proposed system?
+<ul>
+<li>For the most part as you get older the more likely you are to get access to credit</li>
+</ul></li>
+<li>Is it more difficult for people to get loans in order to pay for medical expenses? How does this compare with the actual rate of default in that group? What about people seeking loans for business ventures or education?
+<ul>
+<li>Compared to other intents, medical loans are predicted to be the most likely to default under my model. In the actual data medical loans also have the highest default rate. Across the board my model is more lenient when it comes to loan default prediction.</li>
+</ul></li>
+<li>How does a person’s income level impact the ease with which they can access credit under your decision system?
+<ul>
+<li>The lower someone’s income the more likely they are to be predicted to default.</li>
+</ul></li>
+</ol>
+</h1><h1>
+<p>Part G:</p>
+<p>Conclusion:</p>
+<p>At the start of this blog I set out to accomplish two main goals. The first was to explore score maximizing functions and how to choose “optimal” thresholds for a given function. The second was to uncover and learn how automated decision systems might show bias towards certain sub-segments of a population. Now that we have arrived at the concluding part of the assignment I can happily say I have completed both of my goals.</p>
+<p>In this blog I looked to define an automated decision system for a hypothetical bank extending credit and worked to predict the expected profit said bank using a variety of different parameters with a score function and a threshold. Through all my testing I would that the “optimal” parameters and threshold for expected profits were the catagories;‘person_home_ownership_MORTGAGE’, ‘person_home_ownership_OTHER’, ‘person_home_ownership_OWN’, ‘person_home_ownership_RENT’, and ‘loan_percent_income’ paired with a threshold of 2.806. Using these two values the expected average profit per loan for the bank was $1614.137.</p>
+<p>After maximizing my expected return function and threshold, I looked through my results to answer my second question: Is/Where is there bias in my automated decision system, who does it affect and how? The answer to the first part is, yes, there is definitely bias in my model. It is easier to get a loan the older and richer you are, and depending on what you are trying to get a loan for you will have a more difficult time getting a loan. Now, I do want to briefly preface the following comments by noting, although my model shows a bias towards certain types of loan intent, across the board my model is much more lenient in its prediction of default than the actual rates (I am not commenting on if this is good or bad). The hardest type of loan to be approved for is medical loans because they tend to have the highest default rate. I would love to explore the cause of this further because I imagine a pretty strong correlation between needing a medical loan and having a lower income. So independent of income how skewed is the data? Also, is it possible that the reason people default on medical loans on average at a higher rate because the more expensive operations have a higher mortality rate and thus people cannot pay back the loan? If this conjecture is true then is it truly fair to make it more difficult for people to get medical loans based on other peoples death? I’d wager that the longer someone has to wait for a surgery due to insufficient funds the higher their own risk of death is. On the other hand, should a bank be the one forced to take on the extra financial risk of a sick/hurt person or should the insurance/medical/governmental systems bare more of the financial burden? Personally, I think the current system places and undeserved burden both on the patient and financial institution. I would love to participate in further analysis on this topic to help answer these questions.</p>
+
+
+
+</h1></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
