@@ -3,7 +3,6 @@
     "listing": "/index.html",
     "items": [
       "/posts/goal-setting/index.html",
-      "/posts/implementing-perceptron/test.html",
       "/posts/implementing-perceptron/index.html",
       "/posts/logistic-regression/index.html",
       "/posts/recreating-compas/index.html",
