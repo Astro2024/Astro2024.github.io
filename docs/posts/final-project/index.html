@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.550">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="James Hetherington">
+<meta name="dcterms.date" content="2024-04-30">
+<meta name="description" content="A blog post exploring Newton’s method for logistic regression and its applications">
+
+<title>My Awesome CSCI 0451 Blog - Newton’s Method for Logistic Regression</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: white;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: white;
+background-image: url(../../img/landscape.png);
+background-size: cover;
+      }
+</style>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">My Awesome CSCI 0451 Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Newton’s Method for Logistic Regression</h1>
+                  <div>
+        <div class="description">
+          A blog post exploring Newton’s method for logistic regression and its applications
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>James Hetherington </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">April 30, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div id="cell-1" class="cell" data-metadata="{}" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression, LinearRegression</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-2" class="cell" data-metadata="{}" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>load_ext autoreload</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>autoreload <span class="dv">2</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functions <span class="im">import</span> loaddata, MACD, RSI</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> simple_model <span class="im">import</span> stock_prediction_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload</code></pre>
+</div>
+</div>
+<p><font size="6"> Abstract: <font></font></font></p><font size="6"><font>
+<p>Problem:</p>
+<p>Goals:</p>
+<p>Hypothesis:</p>
+<p>Feature Types:</p>
+<p><font size="6"> Data Collection: <font></font></font></p><font size="6"><font>
+<p>Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each companies has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features.</p>
+<p><font size="6"> Functions/Indicators: <font></font></font></p><font size="6"><font>
+<p>https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/functions.py</p>
+<p>The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project.</p>
+<div id="cell-10" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loaddata(name: <span class="bu">str</span>, start_date <span class="op">=</span> <span class="dv">20100104</span>, end_date <span class="op">=</span> <span class="dv">20211231</span>):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    dates <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/dates.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/"</span><span class="op">+</span>  name <span class="op">+</span> <span class="st">".csv"</span>, header<span class="op">=</span><span class="va">None</span>, names<span class="op">=</span>dates.T.values.tolist()[<span class="dv">0</span>])</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data.loc[:, start_date:end_date]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The next function we built out transforms price data into a MACD indicator. As we discussed above, the moving average convergence/divergence indicator is on of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. We will show how the MACD indicator can be used as an indicator for stock trading.</p>
+<p>If anyone is interested in learning more about this stock indicator I have attached a link to a basic overview: https://www.investopedia.com/terms/m/macd.asp</p>
+<div id="cell-12" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> MACD(data: pd.DataFrame, ema_long: <span class="bu">int</span>, ema_short: <span class="bu">int</span>, signal_length: <span class="bu">int</span>):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span> <span class="op">=</span> data.ewm(span<span class="op">=</span>ema_long, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    short <span class="op">=</span> data.ewm(span<span class="op">=</span>ema_short, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    macd <span class="op">=</span> short <span class="op">-</span> <span class="bu">long</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    signal <span class="op">=</span> macd.ewm(span<span class="op">=</span>signal_length, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> macd <span class="op">-</span> signal</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold” allow traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp</p>
+<div id="cell-14" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> RSI(data: pd.DataFrame, period: <span class="bu">int</span>):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    rsi_values <span class="op">=</span> []</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    cleaned <span class="op">=</span> data</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    av_gain_array <span class="op">=</span> []</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    av_loss_array <span class="op">=</span> []</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(cleaned)):</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">+</span> <span class="dv">1</span> <span class="op">&lt;</span> period:</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            batch <span class="op">=</span> cleaned.iloc[:i<span class="op">+</span><span class="dv">1</span>].dropna()</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            positives <span class="op">=</span> batch[batch <span class="op">&gt;=</span> <span class="dv">0</span>]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            negatives <span class="op">=</span> batch[batch <span class="op">&lt;</span> <span class="dv">0</span>]</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            av_gain_array.append((positives.<span class="bu">sum</span>()<span class="op">+</span><span class="fl">.001</span>) <span class="op">/</span> (i<span class="op">+</span><span class="dv">1</span>))        </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            av_loss_array.append(((<span class="op">-</span><span class="dv">1</span><span class="op">*</span>negatives.<span class="bu">sum</span>())<span class="op">+</span><span class="fl">.001</span>) <span class="op">/</span> (i<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>            current_move <span class="op">=</span> cleaned.iloc[i]</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>            pos <span class="op">=</span> current_move <span class="cf">if</span> current_move <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            neg <span class="op">=</span> <span class="op">-</span><span class="dv">1</span><span class="op">*</span>(current_move) <span class="cf">if</span> current_move <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>            av_gain_array.append(((av_gain_array[i<span class="op">-</span><span class="dv">1</span>] <span class="op">*</span> (period<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span> pos)<span class="op">/</span>period)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            av_loss_array.append(((av_loss_array[i<span class="op">-</span><span class="dv">1</span>] <span class="op">*</span> (period<span class="op">-</span><span class="dv">1</span>)) <span class="op">+</span> neg)<span class="op">/</span>period)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    RS <span class="op">=</span> np.array(av_gain_array) <span class="op">/</span> np.array(av_loss_array)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">100</span> <span class="op">-</span> (<span class="dv">100</span><span class="op">/</span>(<span class="dv">1</span><span class="op">+</span>RS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="5"> MACD And RSI In Use: <font></font></font></p><font size="5"><font>
+<div id="cell-16" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Randomly selected company</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>comp <span class="op">=</span> <span class="dv">1003</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Get price data</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>temp <span class="op">=</span> loaddata(<span class="st">"r_ti2"</span>, <span class="dv">20180101</span>, <span class="dv">20190101</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>temp1 <span class="op">=</span> loaddata(<span class="st">"mid_close"</span>, <span class="dv">20180101</span>, <span class="dv">20190101</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>test1 <span class="op">=</span> temp1.iloc[comp].dropna().ewm(span<span class="op">=</span><span class="dv">12</span>, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>test2 <span class="op">=</span> temp1.iloc[comp].dropna().ewm(span<span class="op">=</span><span class="dv">26</span>, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>macd <span class="op">=</span> test1 <span class="op">-</span> test2</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>signal <span class="op">=</span> macd.ewm(span<span class="op">=</span><span class="dv">9</span>, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>xzero <span class="op">=</span> [<span class="dv">0</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(macd))]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>rsi <span class="op">=</span> RSI(temp.iloc[comp], <span class="dv">12</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">3</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].plot(np.array(temp1.iloc[comp].dropna()))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_title(<span class="st">"Trading Charts"</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_ylabel(<span class="st">"Stock Price"</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot(rsi, label<span class="op">=</span><span class="st">"RSI"</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot([<span class="fl">33.3</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(rsi))], label<span class="op">=</span><span class="st">"Oversold"</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].plot([<span class="fl">66.6</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(rsi))], label<span class="op">=</span><span class="st">"Undersold"</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_ylabel(<span class="st">"RSI"</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].legend()</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">2</span>].plot(np.array(MACD(temp1.iloc[comp],<span class="dv">26</span>,<span class="dv">12</span>,<span class="dv">9</span>)), label<span class="op">=</span><span class="st">"MACD"</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">2</span>].plot(np.array(xzero), label<span class="op">=</span><span class="st">"Zero"</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">2</span>].set_ylabel(<span class="st">"MACD"</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">2</span>].set_xlabel(<span class="st">"Days"</span>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">2</span>].legend()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><font size="6"> Baseline Model: <font></font></font></p><font size="6"><font>
+<p>In order to try an evaluate the various models we are going to explore later in this blog post we must first set a base line to compare our results to. To do this we will take our MACD indicator, apply it to every company over a set period of time, and buy/sell the stock depending on if the MACD is positive or negative.</p>
+<div id="cell-19" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>baseline_profits <span class="op">=</span> []</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years)):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    total_signal <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    close_data <span class="op">=</span> loaddata(<span class="st">"mid_close"</span>, training_starts[i], training_ends[i])</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    open_data <span class="op">=</span> loaddata(<span class="st">"mid_open"</span>, training_starts[i], training_ends[i])</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4752</span>):</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        doit <span class="op">=</span> MACD(close_data.iloc[i], <span class="dv">26</span>, <span class="dv">12</span>, <span class="dv">9</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        close_price <span class="op">=</span> close_data.iloc[i]</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        open_price <span class="op">=</span> open_data.iloc[i]</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        remove <span class="op">=</span> pd.DataFrame({<span class="st">"X"</span>: doit, <span class="st">"X1"</span>: close_price, <span class="st">"X2"</span>: open_price}).dropna()</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        mac <span class="op">=</span> np.array(remove[<span class="st">"X"</span>])</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        close <span class="op">=</span> np.array(remove[<span class="st">"X1"</span>])</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        open1 <span class="op">=</span> np.array(remove[<span class="st">"X2"</span>])</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        sum_signal <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>        sum_zero <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(mac)<span class="op">-</span><span class="dv">1</span>):</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Short</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>            <span class="co">#print(buy_signal_index[j]+1)</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> mac[j] <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>                sum_signal <span class="op">+=</span> open1[j<span class="op">+</span><span class="dv">1</span>] <span class="op">-</span> close[j<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Long</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>                sum_signal <span class="op">+=</span> close[j<span class="op">+</span><span class="dv">1</span>] <span class="op">-</span> open1[j<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>        <span class="co">#print("Traditional Signal: ", sum_signal)</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>        total_signal <span class="op">+=</span> sum_signal</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    baseline_profits.append(total_signal)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="co"># creating the bar plot</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>plt.bar(years, baseline_profits, color <span class="op">=</span><span class="st">'maroon'</span>, width <span class="op">=</span> <span class="fl">0.4</span>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Year"</span>)</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Profit"</span>)</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Baseline Model"</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><font size="6"> Our Model: <font></font></font></p><font size="6"><font>
+<p>After developing a baseline model along with a series of useful functions and indicators we can start to build out our initial models using the indicators/features discussed above. Below we will walk through the model function and explore how its functionality changes depending on it parameters.</p>
+<p>Link to code: https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/simple_model.py</p>
+<p><font size="5"> Helper Functions: <font></font></font></p><font size="5"><font>
+<p>Before we even reach the model we need to define two functions. The first records whether or not a value is positive, negative, or zero. We use this function to create our labels for the Logistic Regression. The second function returns the ln value of an element of an array. We need to define this function to reduce the volume, which tends to be vary large, down to log space so the models weights are more manageable and less likely to have floating point errors.</p>
+<div id="cell-24" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sign(x):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> x <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">0</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">2</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_log(x):</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="op">!=</span> <span class="dv">0</span> <span class="kw">and</span> np.isnan(x) <span class="op">==</span> <span class="va">False</span>:</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.log(x)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="5"> Parameters <font></font></font></p><font size="5"><font>
+<p>Our model function takes 8 different parameters:</p>
+<div id="cell-27" class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>stock_prediction_model(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>        training_period_start <span class="op">=</span> <span class="dv">20180101</span>, </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        training_period_end <span class="op">=</span> <span class="dv">20190101</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        testing_period_start <span class="op">=</span> <span class="dv">20190101</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        testing_period_end <span class="op">=</span> <span class="dv">20200101</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        total_market <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        individual <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        polynomial_features <span class="op">=</span> <span class="dv">1</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        print_results <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The first four are pretty self explanatory. They are int values, formatted as “year + month + day”, that define our training period and testing period. In the example above we would be training the model on the entirety of 2018 then evaluating the models success on the entirety of 2019.</p>
+<p>The next three parameters define what type of model we want. “total_market” decides whether the model will be looking at every company in the market (True) or just the “low volatility” companies (False). “individual” lets us choose whether we want multiple models trained and evaluated individually on each company, or a singular model trained across what ever market we specified in the previous parameter. “polynomial_features” defines the degree of polynomial feature mapping for our feature matrix.</p>
+<p>The last parameter is solely for practical use in this blog post. It toggles whether the function will print out results or return them.</p>
+<p><font size="5"> Initializing data: <font></font></font></p><font size="5"><font>
+<p>Now that we have an understanding of the parameters, let’s move our attention to the first section of code where we initialize all of our data. The comments in the following code explains what each line is/what it is used for.</p>
+<div id="cell-31" class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates our Polynomial feature mapping function of degree "polynomial_features"</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>poly <span class="op">=</span> PolynomialFeatures(polynomial_features) <span class="co"># type: ignore</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we will use to record the profit/loss of each company</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> []</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we use to concatenate the feature matrixes of all our companies together</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>total1 <span class="op">=</span> []</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we use to record the accuracy of our model to predict the correct label for each company</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>chk <span class="op">=</span> []</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we use to record the accuracy of our model to predict the correct price movement for each company</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> []</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we use to record how many label are actual correct in our data</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>pls <span class="op">=</span> []</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a variable that will hold the indices of the companies we want to train and test our model on</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> []</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">""" Test Data """</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the intraday market neutral residual returns for specified training time period</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>rtxm_ti2 <span class="op">=</span> loaddata(<span class="st">"rtxm_ti2"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the overnight market neutral residual returns for specified training time period</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>rtxm_ti1 <span class="op">=</span> loaddata(<span class="st">"rtxm_ti1"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the intraday raw residual returns for specified training time period</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>r_ti2 <span class="op">=</span> loaddata(<span class="st">"r_ti2"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the intraday volume for specified training time period</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>volume <span class="op">=</span> loaddata(<span class="st">"volall_day"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the daily market close price for specified training time period</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>mid_close <span class="op">=</span> loaddata(<span class="st">"mid_close"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the risk/volatility  for specified training time period (predicted values so it is not cheating to use in model)</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>risk <span class="op">=</span> loaddata(<span class="st">"bfast_totrisk"</span>, training_period_start, training_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co">""" Training Data """</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the intraday market neutral residual returns for specified testing time period</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>rtxm_ti2_test <span class="op">=</span> loaddata(<span class="st">"rtxm_ti2"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the overnight market neutral residual returns for specified testing time period</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>rtxm_ti1_test <span class="op">=</span> loaddata(<span class="st">"rtxm_ti1"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the intraday raw residual returns for specified testing time period</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>r_ti2_test <span class="op">=</span> loaddata(<span class="st">"r_ti2"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the overnight volume for specified testing time period</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>volume_test <span class="op">=</span> loaddata(<span class="st">"volall_day"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the daily market close price for specified testing time period</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>mid_close_test <span class="op">=</span> loaddata(<span class="st">"mid_close"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a><span class="co">#Loads the daily market open price for specified testing time period</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>mid_open_test <span class="op">=</span> loaddata(<span class="st">"mid_open"</span>, testing_period_start, testing_period_end)<span class="co"># type: ignore</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a><span class="co">""" Defines indices of companies in specified market """</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a><span class="co">#Get all indices</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> total_market <span class="op">==</span> <span class="va">True</span>:<span class="co"># type: ignore</span></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>    indices <span class="op">=</span> <span class="bu">range</span>(mid_close.shape[<span class="dv">0</span>])</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="co">#Get only low volatility indices</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> total_market <span class="op">==</span> <span class="va">False</span>:<span class="co"># type: ignore</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>    average_risk <span class="op">=</span> risk.mean(axis<span class="op">=</span><span class="dv">1</span>, skipna<span class="op">=</span><span class="va">True</span>).dropna()</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>    bottom_third <span class="op">=</span> average_risk.quantile(<span class="fl">.3333</span>)</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    indices <span class="op">=</span> average_risk[average_risk <span class="op">&lt;</span> bottom_third].index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="5"> Single Model: <font></font></font></p><font size="5"><font>
+<p><font size="4"> Data Rransformation and Training: <font></font></font></p><font size="4"><font>
+<p>The next part of our function transforms our “raw” data into features we want to use in order to predict whether the raw residual return will move up our down. The before the polynomial transformation the five features we are using for the model are yesterday’s intraday market neutral residual returns, last night’s market neutral residual returns, yesterday’s volume mapped to log space, a RSI indicator, and a MACD indicator.</p>
+<div id="cell-35" class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">""" TRAINING DATA AND MODEL """</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Iterates though every company in the designated market</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#4752 companies if total_market = True, around 1200-1300 companies if total_market = False</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Total Market vs. Low Volatility </span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> indices:</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Gets the daily closing price</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    price_i <span class="op">=</span> mid_close.iloc[i]</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Gets the overnight residual returns minus market influence</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    overnight_i <span class="op">=</span> rtxm_ti1.iloc[i, <span class="dv">1</span>:]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Gets yesterday's intraday residual returns minus market influence</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    intraday_i <span class="op">=</span> rtxm_ti2.iloc[i,:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Gets yesterday's volume and maps it to log space</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    volume_i <span class="op">=</span> volume.iloc[i, :<span class="op">-</span><span class="dv">1</span>].<span class="bu">map</span>(<span class="kw">lambda</span> x: my_log(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Calculates the RSI indicator</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    rsi_12 <span class="op">=</span> RSI(rtxm_ti2.iloc[i], <span class="dv">12</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Calculates the MACD indicator</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    macd_26_12_9 <span class="op">=</span> MACD(price_i, <span class="dv">26</span>, <span class="dv">12</span>, <span class="dv">9</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Creates our labels for whether the raw residual returns will go down, up, or stay the same</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> r_ti2.iloc[i, <span class="dv">1</span>:].<span class="bu">map</span>(<span class="kw">lambda</span> x: sign(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Creates a dataframe for the data and drops all days where we do not have sufficient data</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> {<span class="st">'X1'</span>: np.array(overnight_i), <span class="st">'X2'</span>: np.array(intraday_i), <span class="st">"X3"</span>: np.array(volume_i), </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">"X4"</span>: np.array(rsi_12), <span class="st">"X5"</span>: np.array(macd_26_12_9),</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Y"</span>: np.array(y)}</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    data_train <span class="op">=</span> pd.DataFrame(data)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    new_train <span class="op">=</span> data_train.dropna()</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Threshold of 100 trading days in a year for the company to be trained on.</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> new_train.shape[<span class="dv">0</span>] <span class="op">&gt;</span> <span class="dv">100</span>:</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>        total1.append(new_train)</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="co">#Concatenates all the companies data together into a dataframe for easy shuffling and training</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>final_df <span class="op">=</span> pd.concat(total1)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="co">#Initialize our model with 1000 epochs for training</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="co">#Randomize our data (keeps x and y together but shuffles rows)</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>temp <span class="op">=</span> final_df.sample(frac<span class="op">=</span><span class="dv">1</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="co">#Set aside our predictor variable and labels</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>final_x_training <span class="op">=</span> temp[[<span class="st">"X1"</span>,<span class="st">"X2"</span>,<span class="st">"X3"</span>,<span class="st">"X4"</span>,<span class="st">"X5"</span>]]</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>final_y_training <span class="op">=</span> temp[[<span class="st">"Y"</span>]]</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates a polynomial transformation of our feature matrix</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>attempt <span class="op">=</span> poly.fit_transform(final_x_training)</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="co">#Fit our model to the data</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>LR.fit(attempt, np.ravel(final_y_training))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="4"> Model Testing: <font></font></font></p><font size="4"><font>
+<p>The code for testing the model is very similar to the training code, because we need to transform the “raw” data again. One thing you will notice in the code above and below is that we only train and test on companies that have more than 100 valid days of data. This is to ensure we are only adding data that might be representative of the market in that year.</p>
+<div id="cell-38" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">""" </span><span class="al">TESTING</span><span class="co"> DATA AND MODEL """</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Check shape of data and makes sure there is no cheating</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> total_market <span class="op">==</span> <span class="va">True</span>:<span class="co"># type: ignore</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    indices <span class="op">=</span> <span class="bu">range</span>(mid_close_test.shape[<span class="dv">0</span>])</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> total_market <span class="op">==</span> <span class="va">False</span>:<span class="co"># type: ignore</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    average_risk <span class="op">=</span> risk.mean(axis<span class="op">=</span><span class="dv">1</span>, skipna<span class="op">=</span><span class="va">True</span>).dropna()</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    bottom_third <span class="op">=</span> average_risk.quantile(<span class="fl">.3333</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    indices <span class="op">=</span> average_risk[average_risk <span class="op">&lt;</span> bottom_third].index</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#Iterates though every company in the designated market</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> indices:</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Initialize amount made per company</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    total_made <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Initializes out test data</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    price_i_test <span class="op">=</span> mid_close_test.iloc[i]</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    open_price_i_test <span class="op">=</span> mid_open_test.iloc[i]</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    overnight_i_test <span class="op">=</span> rtxm_ti1_test.iloc[i, <span class="dv">1</span>:]</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    intraday_i_test <span class="op">=</span> rtxm_ti2_test.iloc[i,:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    volume_i_test <span class="op">=</span> volume_test.iloc[i, :<span class="op">-</span><span class="dv">1</span>].<span class="bu">map</span>(<span class="kw">lambda</span> x: my_log(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    rsi_12_test <span class="op">=</span> RSI(rtxm_ti2_test.iloc[i], <span class="dv">12</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    macd_26_12_9_test <span class="op">=</span> MACD(price_i_test, <span class="dv">26</span>, <span class="dv">12</span>, <span class="dv">9</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    y_test <span class="op">=</span> r_ti2_test.iloc[i, <span class="dv">1</span>:].<span class="bu">map</span>(<span class="kw">lambda</span> x: sign(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    data_test <span class="op">=</span> {<span class="st">'X1'</span>: np.array(overnight_i_test), <span class="st">'X2'</span>: np.array(intraday_i_test), <span class="st">"X3"</span>: np.array(volume_i_test), </span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>        <span class="st">"X4"</span>: np.array(rsi_12_test), <span class="st">"X5"</span>: np.array(macd_26_12_9_test),</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Y"</span>: np.array(y_test)}</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    data_test <span class="op">=</span> pd.DataFrame(data_test, index<span class="op">=</span>y_test.index)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    new_test <span class="op">=</span> data_test.dropna()</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    X_test <span class="op">=</span> new_test[[<span class="st">"X1"</span>,<span class="st">"X2"</span>,<span class="st">"X3"</span>,<span class="st">"X4"</span>,<span class="st">"X5"</span>]]  </span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    y_test <span class="op">=</span> new_test[[<span class="st">"Y"</span>]]</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Check the size of the company</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> X_test.shape[<span class="dv">0</span>] <span class="op">&gt;</span> <span class="dv">100</span>:</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Creates a polynomial transformation of our feature matrix</span></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        x_test <span class="op">=</span> poly.fit_transform(X_test)</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Records how accurate our model is</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>        chk.append(LR.score(x_test, y_test))</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Predicts labels for time frame of one company</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>        signals <span class="op">=</span> LR.predict(x_test)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Take the dates for each label</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>        signal_dates <span class="op">=</span> new_test.index</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Iterates through the timeframe</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(signals)):</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Collects the open and close price for a given day</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>            price1 <span class="op">=</span> open_price_i_test.loc[signal_dates[j]]</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>            price2 <span class="op">=</span> price_i_test.loc[signal_dates[j]]</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Records how often our y-data was correctly recorded</span></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>            pls.append(<span class="bu">int</span>(price1 <span class="op">-</span> price2 <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">==</span> np.array(y_test)[j][<span class="dv">0</span>])</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Short</span></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> signals[j] <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>                gain <span class="op">=</span> price1 <span class="op">-</span> price2</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>                test.append(gain <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>                total_made <span class="op">+=</span> gain</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Long</span></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> signals[j] <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>                gain <span class="op">=</span> price2 <span class="op">-</span> price1</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>                test.append(gain <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>                total_made <span class="op">+=</span> gain</span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a>        <span class="co">#Record the total made/lost for each company</span></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>        total.append(total_made)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="5"> Individual Model Per Company: <font></font></font></p><font size="5"><font>
+<p>The code below is the same code as above just reordered so that we train and test a new model for each individual company. Because we are training multiple models in this case, our functions runtime gets significantly longer.</p>
+<div id="cell-41" class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Iterates though every company in the designated market</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> indices:</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    total_made <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#TRAINING DATA</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    price_i <span class="op">=</span> mid_close.iloc[i]</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    overnight_i <span class="op">=</span> rtxm_ti1.iloc[i, <span class="dv">1</span>:]</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    intraday_i <span class="op">=</span> rtxm_ti2.iloc[i,:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    volume_i <span class="op">=</span> volume.iloc[i, :<span class="op">-</span><span class="dv">1</span>].<span class="bu">map</span>(<span class="kw">lambda</span> x: my_log(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    rsi_12 <span class="op">=</span> RSI(rtxm_ti2.iloc[i], <span class="dv">12</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    macd_26_12_9 <span class="op">=</span> MACD(price_i, <span class="dv">26</span>, <span class="dv">12</span>, <span class="dv">9</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> r_ti2.iloc[i, <span class="dv">1</span>:].<span class="bu">map</span>(<span class="kw">lambda</span> x: sign(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> {<span class="st">'X1'</span>: np.array(overnight_i), <span class="st">'X2'</span>: np.array(intraday_i), <span class="st">"X3"</span>: np.array(volume_i), </span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">"X4"</span>: np.array(rsi_12), <span class="st">"X5"</span>: np.array(macd_26_12_9),</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Y"</span>: np.array(y)}</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    data_train <span class="op">=</span> pd.DataFrame(data)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    new_train <span class="op">=</span> data_train.dropna()</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    temp <span class="op">=</span> new_train.sample(frac<span class="op">=</span><span class="dv">1</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    X_train <span class="op">=</span> temp[[<span class="st">"X1"</span>,<span class="st">"X2"</span>,<span class="st">"X3"</span>,<span class="st">"X4"</span>,<span class="st">"X5"</span>]]</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    y_train <span class="op">=</span> temp[[<span class="st">"Y"</span>]]</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#TESTING DATA</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    price_i_test <span class="op">=</span> mid_close_test.iloc[i]</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    open_price_i_test <span class="op">=</span> mid_open_test.iloc[i]</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    overnight_i_test <span class="op">=</span> rtxm_ti1_test.iloc[i, <span class="dv">1</span>:]</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    intraday_i_test <span class="op">=</span> rtxm_ti2_test.iloc[i,:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    volume_i_test <span class="op">=</span> volume_test.iloc[i, :<span class="op">-</span><span class="dv">1</span>].<span class="bu">map</span>(<span class="kw">lambda</span> x: my_log(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    rsi_12_test <span class="op">=</span> RSI(rtxm_ti2_test.iloc[i], <span class="dv">12</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    macd_26_12_9_test <span class="op">=</span> MACD(price_i_test, <span class="dv">26</span>, <span class="dv">12</span>, <span class="dv">9</span>)[:<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    y_test <span class="op">=</span> r_ti2_test.iloc[i, <span class="dv">1</span>:].<span class="bu">map</span>(<span class="kw">lambda</span> x: sign(x), na_action<span class="op">=</span><span class="st">"ignore"</span>)</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    data_test <span class="op">=</span> {<span class="st">'X1'</span>: np.array(overnight_i_test), <span class="st">'X2'</span>: np.array(intraday_i_test), <span class="st">"X3"</span>: np.array(volume_i_test), </span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>        <span class="st">"X4"</span>: np.array(rsi_12_test), <span class="st">"X5"</span>: np.array(macd_26_12_9_test),</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Y"</span>: np.array(y_test)}</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    data_test <span class="op">=</span> pd.DataFrame(data_test, index<span class="op">=</span>y_test.index)</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    new_test <span class="op">=</span> data_test.dropna()</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    X_test <span class="op">=</span> new_test[[<span class="st">"X1"</span>,<span class="st">"X2"</span>,<span class="st">"X3"</span>,<span class="st">"X4"</span>,<span class="st">"X5"</span>]]  </span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    y_test <span class="op">=</span> new_test[[<span class="st">"Y"</span>]]</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Train and Test individual models</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> new_train.shape[<span class="dv">0</span>] <span class="op">&gt;</span> <span class="dv">100</span> <span class="kw">and</span> new_test.shape[<span class="dv">0</span>] <span class="op">&gt;</span> <span class="dv">100</span>:</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>        LR <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>        x_train <span class="op">=</span> poly.fit_transform(X_train)</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>        x_test <span class="op">=</span> poly.fit_transform(X_test)</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>        LR.fit(x_train, np.ravel(y_train))</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>        chk.append(LR.score(x_test, y_test))</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>        signals <span class="op">=</span> LR.predict(x_test)</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>        count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>        signal_dates <span class="op">=</span> new_test.index</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(signals)):</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>            price1 <span class="op">=</span> open_price_i_test.loc[signal_dates[j]]</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>            price2 <span class="op">=</span> price_i_test.loc[signal_dates[j]]</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>            pls.append(<span class="bu">int</span>(price1 <span class="op">-</span> price2 <span class="op">&lt;</span> <span class="dv">0</span>) <span class="op">==</span> np.array(y_test)[j][<span class="dv">0</span>])</span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Short</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> signals[j] <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>                gain <span class="op">=</span> price1 <span class="op">-</span> price2</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>                test.append(gain <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>                total_made <span class="op">+=</span> gain</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>            <span class="co">#Long</span></span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> signals[j] <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>                gain <span class="op">=</span> price2 <span class="op">-</span> price1</span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>                test.append(gain <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>                total_made <span class="op">+=</span> gain</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>        total.append(total_made)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="5"> Print/Return Statements: <font></font></font></p><font size="5"><font>
+<p>The final part of our model function is choosing whether or not we want to print out the effectiveness of our model or return specific metrics. In “print mode” we print out the mean, max, and min accuracy of our model, the percent of data with correct labels, how often we correctly predict whether the price will move up or down, the amount of money our model/s makes over the testing time frame, a very crude estimate of what initial funding is required for the model to be successful, and lastly the percent return we made. All of these act as a quick and easy way to evaluate the effectiveness of our model. In the “return mode” we only return the mean, max, and min accuracy of our model, and the amount of money made. We chose these metrics because they are ideal metrics to create graphs for comparing different models over various time frames.</p>
+<div id="cell-44" class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> print_results <span class="op">==</span> <span class="va">True</span>:<span class="co"># type: ignore</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Mean Score: "</span>, <span class="bu">sum</span>(chk)<span class="op">/</span><span class="bu">len</span>(chk))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Max Score: "</span>, <span class="bu">max</span>(chk))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Min Score: "</span>, <span class="bu">min</span>(chk))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Proportion of correct labels: "</span>, <span class="bu">sum</span>(pls)<span class="op">/</span><span class="bu">len</span>(pls))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Proportion of correct guesses: "</span>, <span class="bu">sum</span>(test)<span class="op">/</span><span class="bu">len</span>(test))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Total Money Made: "</span>, <span class="bu">sum</span>(total))</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#The following 2 metrics should be taken with a grain of salt because the initial funds are an extremely crude estimation</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Initial Funds: "</span>, mid_open_test.iloc[:,<span class="dv">0</span>].dropna().<span class="bu">sum</span>())</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"YoY: "</span>, <span class="bu">sum</span>(total) <span class="op">/</span> mid_open_test.iloc[:,<span class="dv">0</span>].dropna().<span class="bu">sum</span>())</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(total), <span class="bu">sum</span>(chk)<span class="op">/</span><span class="bu">len</span>(chk), <span class="bu">max</span>(chk), <span class="bu">min</span>(chk)<span class="co"># type: ignore</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><font size="6"> Results: <font></font></font></p><font size="6"><font>
+<p><font size="5"> Generic Example: <font></font></font></p><font size="5"><font>
+<p>Now that we have gone over how we got our data, built function to transform it, and then built a model function using the transformed data, let switch our attention over to the results of our experiments.</p>
+<p>We can start by testing how a single model does when it is trained on the entirety of 2018 data to predict 2019 and we do not use a polynomial feature map.</p>
+<div id="cell-48" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>stock_prediction_model(<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="va">True</span>,<span class="va">False</span>,<span class="dv">1</span>,<span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Mean Score:  0.5230379952213283
+Max Score:  0.6625514403292181
+Min Score:  0.39090909090909093
+Proportion of correct labels:  0.9472727502676028
+Proportion of correct guesses:  0.5055342916830984
+Total Money Made:  11288.076933070943
+Initial Funds:  40712.52499175072
+YoY:  0.2772630028562012</code></pre>
+</div>
+</div>
+<p>Depending on the metric, the results above look rather good. For most models, a mean accuracy of 52.3% is not that good, however, in the stock market that level of accuracy can make a lot of money as we see above. One metric that we were initially concerned about was the fact that the mean accuracy was so different than the proportion of guesses correct. This meant one of two things, the market shifted a lot year to year, or our models predictions were not actually connected to whether the price moved up or down. After a longer analysis, we realized that while the first concern definitely did have an effect on our metrics it was not significant enough to be causing a 2% difference. So we created the 4th metric “proportion of correct labels”. This metric calculated how often our raw residual return moved in the same direction as our price. Intuitively, this should always move in the same direction, however it was only correct around 95% of the time. So, we believe the difference of 2% from mean accuracy to proportion of correct guesses is due to inaccurate data. At the end of the blog post I will discuss this more talk about ways we might change our data/code in the future.</p>
+<p>Now lets evaluate the result of our four different models.</p>
+<p><font size="5"> Total Market Model: <font></font></font></p><font size="5"><font>
+<p>Within each “general model” defined by the heading above (Total Market Model in this case), we specify four different variations of the model. The first variation is a model trained on one one year of data trying to predict the next year (blue label). The second variation is a model trained on two years of date to predict the next year (red label). The third variation is a model trained on one year of data with polynomial feature mapping of the second degree to predict the next year using the same polynomial feature map (green label). The fourth and final variation is the same as the third but trained on two year of data instead of one (black label). In the following figures there are two separate graphs corresponding to the success/accuracy of the four variations of our model over a five year time span. The top graph shows you the profit each variation would have made each year. The bottom graph visualizes the maximum, mean, and minimum accuracy across the companies in our designated market for each variation on a given year. The minimum is signified by the bottom break in the bar, the middle break is the mean, and the top of the bar is the max accuracy.</p>
+<div id="cell-53" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>testing_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>tm_profits <span class="op">=</span> []</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>tm_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>tm_max_accuracies <span class="op">=</span> []</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>tm_min_accuracies <span class="op">=</span> []</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>tm2_profits <span class="op">=</span> []</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>tm2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>tm2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>tm2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>poly_tm_profits <span class="op">=</span> []</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>poly_tm_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>poly_tm_max_accuracies <span class="op">=</span> []</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>poly_tm_min_accuracies <span class="op">=</span> []</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>poly_tm2_profits <span class="op">=</span> []</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>poly_tm2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>poly_tm2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>poly_tm2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(training_starts)):</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>    poly_profit2,poly_mean_accuracy2, poly_max_accuracy2, poly_min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">False</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>    poly_tm2_profits.append(poly_profit2)</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    poly_tm2_mean_accuracies.append(poly_mean_accuracy2)</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    poly_tm2_max_accuracies.append(poly_max_accuracy2)</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>    poly_tm2_min_accuracies.append(poly_min_accuracy2)</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>    poly_profit,poly_mean_accuracy, poly_max_accuracy, poly_min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">False</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>    poly_tm_profits.append(poly_profit)</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    poly_tm_mean_accuracies.append(poly_mean_accuracy)</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>    poly_tm_max_accuracies.append(poly_max_accuracy)</span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>    poly_tm_min_accuracies.append(poly_min_accuracy)</span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>    profit2, mean_accuracy2, max_accuracy2, min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">False</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>    tm2_profits.append(profit2)</span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>    tm2_mean_accuracies.append(mean_accuracy2)</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>    tm2_max_accuracies.append(max_accuracy2)</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>    tm2_min_accuracies.append(min_accuracy2)</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>    profit, mean_accuracy, max_accuracy, min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">False</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>    tm_profits.append(profit)</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>    tm_mean_accuracies.append(mean_accuracy)</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>    tm_max_accuracies.append(max_accuracy)</span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>    tm_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-54" class="cell" data-execution_count="55">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>br3 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br2]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>br4 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br3]</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br1, tm_profits, color <span class="op">=</span><span class="st">'blue'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br2, tm2_profits, color <span class="op">=</span><span class="st">'red'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br3, poly_tm_profits, color <span class="op">=</span><span class="st">'green'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br4, poly_tm2_profits, color <span class="op">=</span><span class="st">'black'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_title(<span class="st">"Total Market Models"</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_ylabel(<span class="st">'Profit'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend()</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, tm_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'blue'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tm_mean_accuracies, tm_min_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tm_min_accuracies)</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tm_max_accuracies, tm_mean_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tm_mean_accuracies)</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, tm2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'red'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tm2_mean_accuracies, tm2_min_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tm2_min_accuracies)</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tm2_max_accuracies, tm2_mean_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tm2_mean_accuracies)</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, poly_tm_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'green'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tm_mean_accuracies, poly_tm_min_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tm_min_accuracies)</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tm_max_accuracies, poly_tm_mean_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tm_mean_accuracies)</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, poly_tm2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'black'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tm2_mean_accuracies, poly_tm2_min_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tm2_min_accuracies)</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tm2_max_accuracies, poly_tm2_mean_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tm2_mean_accuracies)</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xlabel(<span class="st">'Type of Model'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>)</span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_ylabel(<span class="st">'Accuracy'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>plt.show() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>I will discuss more general trends across all models later in the blog post. For now we will make some preliminary observations about the Total Market Model. Our Total Market Model made considerable profit most years we tested the data on. Both 2017 and 2018 were considerably worse years than the rest with former being worse than the latter. For most of the years it seems like our polynomial feature mapping improves the one year variation, yet fails to show consistent improvement for our two year variation. At this point it is difficult to see a very strong correlation between the modals accuracy and its profit.</p>
+<p><font size="5"> Low Volatility Market Model: <font></font></font></p><font size="5"><font>
+<div id="cell-57" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>testing_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>lv_profits <span class="op">=</span> []</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>lv_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>lv_max_accuracies <span class="op">=</span> []</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>lv_min_accuracies <span class="op">=</span> []</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>lv2_profits <span class="op">=</span> []</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>lv2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>lv2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>lv2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>poly_lv_profits <span class="op">=</span> []</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>poly_lv_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>poly_lv_max_accuracies <span class="op">=</span> []</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>poly_lv_min_accuracies <span class="op">=</span> []</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>poly_lv2_profits <span class="op">=</span> []</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>poly_lv2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>poly_lv2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>poly_lv2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(training_starts)):</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>    poly_profit2,poly_mean_accuracy2, poly_max_accuracy2, poly_min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">False</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>    poly_lv2_profits.append(poly_profit2)</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>    poly_lv2_mean_accuracies.append(poly_mean_accuracy2)</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>    poly_lv2_max_accuracies.append(poly_max_accuracy2)</span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>    poly_lv2_min_accuracies.append(poly_min_accuracy2)</span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>    poly_profit,poly_mean_accuracy, poly_max_accuracy, poly_min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">False</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>    poly_lv_profits.append(poly_profit)</span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>    poly_lv_mean_accuracies.append(poly_mean_accuracy)</span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a>    poly_lv_max_accuracies.append(poly_max_accuracy)</span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a>    poly_lv_min_accuracies.append(poly_min_accuracy)</span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a>    profit2, mean_accuracy2, max_accuracy2, min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">False</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a>    lv2_profits.append(profit2)</span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a>    lv2_mean_accuracies.append(mean_accuracy2)</span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a>    lv2_max_accuracies.append(max_accuracy2)</span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>    lv2_min_accuracies.append(min_accuracy2)</span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>    profit, mean_accuracy, max_accuracy, min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">False</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a>    lv_profits.append(profit)</span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a>    lv_mean_accuracies.append(mean_accuracy)</span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>    lv_max_accuracies.append(max_accuracy)</span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a>    lv_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-58" class="cell" data-execution_count="54">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>br3 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br2]</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>br4 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br3]</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br1, lv_profits, color <span class="op">=</span><span class="st">'blue'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br2, lv2_profits, color <span class="op">=</span><span class="st">'red'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br3, poly_lv_profits, color <span class="op">=</span><span class="st">'green'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br4, poly_lv2_profits, color <span class="op">=</span><span class="st">'black'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_title(<span class="st">"Low Volatility Market Models"</span>)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_ylabel(<span class="st">'Profit'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend()</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, lv_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'blue'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lv_mean_accuracies, lv_min_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lv_min_accuracies)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lv_max_accuracies, lv_mean_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lv_mean_accuracies)</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, lv2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'red'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lv2_mean_accuracies, lv2_min_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lv2_min_accuracies)</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lv2_max_accuracies, lv2_mean_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lv2_mean_accuracies)</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, poly_lv_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'green'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lv_mean_accuracies, poly_lv_min_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lv_min_accuracies)</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lv_max_accuracies, poly_lv_mean_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lv_mean_accuracies)</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, poly_lv2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'black'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lv2_mean_accuracies, poly_lv2_min_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lv2_min_accuracies)</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lv2_max_accuracies, poly_lv2_mean_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lv2_mean_accuracies)</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xlabel(<span class="st">'Type of Model'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>)</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_ylabel(<span class="st">'Accuracy'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>plt.show() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-20-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The low volatility market models are trained and tested on only a third of our companies so it is expected that the profits made will be close to a third of the entire market. However, since these companies are in the bottom third of volatility there price movement will be smaller, so we can assume our models will make slightly less than one third. So, what stands out in this model is how successful we are in 2017 compared to the total market model. Across all variations it seems like we are almost matching the profit of the total market model. The only year that does not look promising is 2018. But, other than that, all of the years seem like they are representative of what they should be.</p>
+<p><font size="5"> Total Market w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
+<div id="cell-61" class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>testing_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>tmi_profits <span class="op">=</span> []</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>tmi_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>tmi_max_accuracies <span class="op">=</span> []</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>tmi_min_accuracies <span class="op">=</span> []</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>tmi2_profits <span class="op">=</span> []</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>tmi2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>tmi2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>tmi2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>poly_tmi_profits <span class="op">=</span> []</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>poly_tmi_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>poly_tmi_max_accuracies <span class="op">=</span> []</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>poly_tmi_min_accuracies <span class="op">=</span> []</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>poly_tmi2_profits <span class="op">=</span> []</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>poly_tmi2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>poly_tmi2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>poly_tmi2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(training_starts)):</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    poly_profit2,poly_mean_accuracy2, poly_max_accuracy2, poly_min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">True</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    poly_tmi2_profits.append(poly_profit2)</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    poly_tmi2_mean_accuracies.append(poly_mean_accuracy2)</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    poly_tmi2_max_accuracies.append(poly_max_accuracy2)</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    poly_tmi2_min_accuracies.append(poly_min_accuracy2)</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    poly_profit,poly_mean_accuracy, poly_max_accuracy, poly_min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">True</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    poly_tmi_profits.append(poly_profit)</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    poly_tmi_mean_accuracies.append(poly_mean_accuracy)</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>    poly_tmi_max_accuracies.append(poly_max_accuracy)</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>    poly_tmi_min_accuracies.append(poly_min_accuracy)</span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>    profit2, mean_accuracy2, max_accuracy2, min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">True</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>    tmi2_profits.append(profit2)</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>    tmi2_mean_accuracies.append(mean_accuracy2)</span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>    tmi2_max_accuracies.append(max_accuracy2)</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>    tmi2_min_accuracies.append(min_accuracy2)</span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>    profit, mean_accuracy, max_accuracy, min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">True</span>, <span class="va">True</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>    tmi_profits.append(profit)</span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>    tmi_mean_accuracies.append(mean_accuracy)</span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>    tmi_max_accuracies.append(max_accuracy)</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>    tmi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-62" class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>br3 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br2]</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>br4 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br3]</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br1, tmi_profits, color <span class="op">=</span><span class="st">'blue'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br2, tmi2_profits, color <span class="op">=</span><span class="st">'red'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br3, poly_tmi_profits, color <span class="op">=</span><span class="st">'green'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br4, poly_tmi2_profits, color <span class="op">=</span><span class="st">'black'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_title(<span class="st">"Total Market w/ Individual Models"</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_ylabel(<span class="st">'Profit'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend()</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, tmi_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'blue'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tmi_mean_accuracies, tmi_min_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tmi_min_accuracies)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tmi_max_accuracies, tmi_mean_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tmi_mean_accuracies)</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, tmi2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'red'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tmi2_mean_accuracies, tmi2_min_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tmi2_min_accuracies)</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(tmi2_max_accuracies, tmi2_mean_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>tmi2_mean_accuracies)</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, poly_tmi_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'green'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tmi_mean_accuracies, poly_tmi_min_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tmi_min_accuracies)</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tmi_max_accuracies, poly_tmi_mean_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tmi_mean_accuracies)</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, poly_tmi2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'black'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tmi2_mean_accuracies, poly_tmi2_min_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tmi2_min_accuracies)</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_tmi2_max_accuracies, poly_tmi2_mean_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_tmi2_mean_accuracies)</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xlabel(<span class="st">'Type of Model'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>)</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_ylabel(<span class="st">'Accuracy'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>plt.show() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-22-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Our total market w/ independent models does not live up to the expectations we expressed in our hypotheses. Compared to a single model the individual models makes considerably less money. It’s performance in 2017 is the worst we have seen yet. One of the questions that we begin to have is “why do we lose so much money if we have such a considerably normal mean accuracy?” The simple answer is that the market was rather turbulent in 2017 and the price movement was larger, on average, when we made an incorrect guess, than when we made a correct guess. Another thing to note, is that since we are training a model for each company, there are considerably less data points to train on. In fact, when training on one year of data, a single company only has around 240 data points, while the total market model has over one 1,000,000. I suspect this is the main contributor to why our individual models do so much more poorly than the total market model. I also think that the size of the training data is why, when we use polynomial feature mapping and more years of training data, our profit is noticeably higher.</p>
+<p><font size="5"> Low Volatility w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
+<div id="cell-65" class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>testing_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>lvi_profits <span class="op">=</span> []</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>lvi_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>lvi_max_accuracies <span class="op">=</span> []</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>lvi_min_accuracies <span class="op">=</span> []</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>lvi2_profits <span class="op">=</span> []</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>lvi2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>lvi2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>lvi2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>poly_lvi_profits <span class="op">=</span> []</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>poly_lvi_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>poly_lvi_max_accuracies <span class="op">=</span> []</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>poly_lvi_min_accuracies <span class="op">=</span> []</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>poly_lvi2_profits <span class="op">=</span> []</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>poly_lvi2_mean_accuracies <span class="op">=</span> []</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>poly_lvi2_max_accuracies <span class="op">=</span> []</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>poly_lvi2_min_accuracies <span class="op">=</span> []</span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(training_starts)):</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>    poly_profit2,poly_mean_accuracy2, poly_max_accuracy2, poly_min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">True</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>    poly_lvi2_profits.append(poly_profit2)</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>    poly_lvi2_mean_accuracies.append(poly_mean_accuracy2)</span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>    poly_lvi2_max_accuracies.append(poly_max_accuracy2)</span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    poly_lvi2_min_accuracies.append(poly_min_accuracy2)</span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>    poly_profit,poly_mean_accuracy, poly_max_accuracy, poly_min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">True</span>, <span class="dv">2</span>, <span class="va">False</span>)</span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>    poly_lvi_profits.append(poly_profit)</span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>    poly_lvi_mean_accuracies.append(poly_mean_accuracy)</span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>    poly_lvi_max_accuracies.append(poly_max_accuracy)</span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>    poly_lvi_min_accuracies.append(poly_min_accuracy)</span>
+<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>    profit2, mean_accuracy2, max_accuracy2, min_accuracy2 <span class="op">=</span> stock_prediction_model(training_starts[i]<span class="op">-</span><span class="dv">10000</span>, training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">True</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>    lvi2_profits.append(profit2)</span>
+<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>    lvi2_mean_accuracies.append(mean_accuracy2)</span>
+<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>    lvi2_max_accuracies.append(max_accuracy2)</span>
+<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>    lvi2_min_accuracies.append(min_accuracy2)</span>
+<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a>    profit, mean_accuracy, max_accuracy, min_accuracy <span class="op">=</span> stock_prediction_model(training_starts[i], training_ends[i], testing_starts[i], testing_ends[i], <span class="va">False</span>, <span class="va">True</span>, <span class="dv">1</span>, <span class="va">False</span>)</span>
+<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>    lvi_profits.append(profit)</span>
+<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>    lvi_mean_accuracies.append(mean_accuracy)</span>
+<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>    lvi_max_accuracies.append(max_accuracy)</span>
+<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>    lvi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-66" class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>br3 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br2]</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>br4 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br3]</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br1, lvi_profits, color <span class="op">=</span><span class="st">'blue'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br2, lvi2_profits, color <span class="op">=</span><span class="st">'red'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br3, poly_lvi_profits, color <span class="op">=</span><span class="st">'green'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].bar(br4, poly_lvi2_profits, color <span class="op">=</span><span class="st">'black'</span>, width <span class="op">=</span> <span class="fl">0.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_title(<span class="st">"Low Volatility Market w/ Individual Models"</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_ylabel(<span class="st">'Profit'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">0</span>].legend()</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, lvi_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'blue'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year"</span>)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lvi_mean_accuracies, lvi_min_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lvi_min_accuracies)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br1, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lvi_max_accuracies, lvi_mean_accuracies)], color <span class="op">=</span><span class="st">'blue'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lvi_mean_accuracies)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, lvi2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'red'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year"</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lvi2_mean_accuracies, lvi2_min_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lvi2_min_accuracies)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br2, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(lvi2_max_accuracies, lvi2_mean_accuracies)], color <span class="op">=</span><span class="st">'red'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>lvi2_mean_accuracies)</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, poly_lvi_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'green'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"1 Year Poly"</span>)</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lvi_mean_accuracies, poly_lvi_min_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lvi_min_accuracies)</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br3, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lvi_max_accuracies, poly_lvi_mean_accuracies)], color <span class="op">=</span><span class="st">'green'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lvi_mean_accuracies)</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, poly_lvi2_min_accuracies, edgecolor<span class="op">=</span><span class="st">"white"</span>, color <span class="op">=</span><span class="st">'black'</span>, width<span class="op">=</span><span class="fl">.2</span>, label<span class="op">=</span><span class="st">"2 Year Poly"</span>)</span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lvi2_mean_accuracies, poly_lvi2_min_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lvi2_min_accuracies)</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].bar(br4, [a_i <span class="op">-</span> b_i <span class="cf">for</span> a_i, b_i <span class="kw">in</span> <span class="bu">zip</span>(poly_lvi2_max_accuracies, poly_lvi2_mean_accuracies)], color <span class="op">=</span><span class="st">'black'</span>, edgecolor<span class="op">=</span><span class="st">"white"</span>, width<span class="op">=</span><span class="fl">.2</span>, bottom<span class="op">=</span>poly_lvi2_mean_accuracies)</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xlabel(<span class="st">'Type of Model'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>)</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_ylabel(<span class="st">'Accuracy'</span>, fontweight <span class="op">=</span><span class="st">'bold'</span>, fontsize <span class="op">=</span> <span class="dv">15</span>) </span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>ax[<span class="dv">1</span>].set_xticks([r <span class="op">+</span> <span class="fl">.3</span> <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(years))], [<span class="st">'2016'</span>, <span class="st">'2017'</span>, <span class="st">'2018'</span>, <span class="st">'2019'</span>, <span class="st">'2020'</span>])</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>plt.show() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-24-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Everything discussed about the Total Market w/ Individual Models with respect to more data equals better results seems to be exemplified here. Maybe the trend is easier to see because we are only testing on low volatility stocks, but as 2 year has more data than 1 year, 1 year poly has more data than 2 year, 2 year poly has more data than 1 year poly, and our profit increase across all years roughly in that order. While the profit for this model is not as impressive as the other models, it has some of the most consistent results across variations.</p>
+<p><font size="5"> Trends Across Models: <font></font></font></p><font size="5"><font>
+<p><font size="6"> Conclusion: <font></font></font></p><font size="6"><font>
+
+
+
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</font></font></font></font></font></font></font></font></font></font></font></div><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /content -->
+
+
+
+
+</font></font></font></font></font></font></font></font></font></font></font></body></html>
