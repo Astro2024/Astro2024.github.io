@@ -232,10 +232,10 @@ background-size: cover;
 <p>Hypothesis:</p>
 <p>Feature Types:</p>
 <p><font size="6"> Data Collection: <font></font></font></p><font size="6"><font>
-<p>Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each companies has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features.</p>
+<p><font size="3"> Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each companies has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features. <font></font></font></p><font size="3"><font>
 <p><font size="6"> Functions/Indicators: <font></font></font></p><font size="6"><font>
-<p>https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/functions.py</p>
-<p>The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project.</p>
+<p><font size="3"> https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/functions.py <font></font></font></p><font size="3"><font>
+<p><font size="3"> The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project. <font></font></font></p><font size="3"><font>
 <div id="cell-10" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loaddata(name: <span class="bu">str</span>, start_date <span class="op">=</span> <span class="dv">20100104</span>, end_date <span class="op">=</span> <span class="dv">20211231</span>):</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    dates <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/dates.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
@@ -243,8 +243,8 @@ background-size: cover;
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data.loc[:, start_date:end_date]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The next function we built out transforms price data into a MACD indicator. As we discussed above, the moving average convergence/divergence indicator is on of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. We will show how the MACD indicator can be used as an indicator for stock trading.</p>
-<p>If anyone is interested in learning more about this stock indicator I have attached a link to a basic overview: https://www.investopedia.com/terms/m/macd.asp</p>
+<p><font size="3"> The next function we built out transforms price data into a MACD indicator. As we discussed above, the moving average convergence/divergence indicator is on of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. We will show how the MACD indicator can be used as an indicator for stock trading.</font></p><font size="3">
+<p>If anyone is interested in learning more about this stock indicator I have attached a link to a basic overview: https://www.investopedia.com/terms/m/macd.asp <font></font></p><font>
 <div id="cell-12" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> MACD(data: pd.DataFrame, ema_long: <span class="bu">int</span>, ema_short: <span class="bu">int</span>, signal_length: <span class="bu">int</span>):</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span> <span class="op">=</span> data.ewm(span<span class="op">=</span>ema_long, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
@@ -254,7 +254,7 @@ background-size: cover;
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> macd <span class="op">-</span> signal</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold” allow traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp</p>
+<p><font size="3"> The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold” allow traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp <font></font></font></p><font size="3"><font>
 <div id="cell-14" class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> RSI(data: pd.DataFrame, period: <span class="bu">int</span>):</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    rsi_values <span class="op">=</span> []</span>
@@ -315,7 +315,7 @@ background-size: cover;
 </div>
 </div>
 <p><font size="6"> Baseline Model: <font></font></font></p><font size="6"><font>
-<p>In order to try an evaluate the various models we are going to explore later in this blog post we must first set a base line to compare our results to. To do this we will take our MACD indicator, apply it to every company over a set period of time, and buy/sell the stock depending on if the MACD is positive or negative.</p>
+<p><font size="3"> In order to try an evaluate the various models we are going to explore later in this blog post we must first set a base line to compare our results to. To do this we will take our MACD indicator, apply it to every company over a set period of time, and buy/sell the stock depending on if the MACD is positive or negative. <font></font></font></p><font size="3"><font>
 <div id="cell-19" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
@@ -368,10 +368,10 @@ background-size: cover;
 </div>
 </div>
 <p><font size="6"> Our Model: <font></font></font></p><font size="6"><font>
-<p>After developing a baseline model along with a series of useful functions and indicators we can start to build out our initial models using the indicators/features discussed above. Below we will walk through the model function and explore how its functionality changes depending on it parameters.</p>
-<p>Link to code: https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/simple_model.py</p>
+<p><font size="3"> After developing a baseline model along with a series of useful functions and indicators we can start to build out our initial models using the indicators/features discussed above. Below we will walk through the model function and explore how its functionality changes depending on it parameters.</font></p><font size="3">
+<p>Link to code: https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/simple_model.py <font></font></p><font>
 <p><font size="5"> Helper Functions: <font></font></font></p><font size="5"><font>
-<p>Before we even reach the model we need to define two functions. The first records whether or not a value is positive, negative, or zero. We use this function to create our labels for the Logistic Regression. The second function returns the ln value of an element of an array. We need to define this function to reduce the volume, which tends to be vary large, down to log space so the models weights are more manageable and less likely to have floating point errors.</p>
+<p><font size="3"> Before we even reach the model we need to define two functions. The first records whether or not a value is positive, negative, or zero. We use this function to create our labels for the Logistic Regression. The second function returns the ln value of an element of an array. We need to define this function to reduce the volume, which tends to be vary large, down to log space so the models weights are more manageable and less likely to have floating point errors. <font></font></font></p><font size="3"><font>
 <div id="cell-24" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sign(x):</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="op">&gt;</span> <span class="dv">0</span>:</span>
@@ -388,7 +388,7 @@ background-size: cover;
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><font size="5"> Parameters <font></font></font></p><font size="5"><font>
-<p>Our model function takes 8 different parameters:</p>
+<p><font size="3"> Our model function takes 8 different parameters: <font></font></font></p><font size="3"><font>
 <div id="cell-27" class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>stock_prediction_model(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>        training_period_start <span class="op">=</span> <span class="dv">20180101</span>, </span>
@@ -1033,7 +1033,7 @@ YoY:  0.2772630028562012</code></pre>
 
 
 
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /main -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="6"><font size="3"><font size="3"><font size="3"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1421,9 +1421,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
-</font></font></font></font></font></font></font></font></font></font></font></div><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /content -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></div><font size="6"><font size="3"><font size="3"><font size="3"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font><font size="5"><font><font size="6"><font> <!-- /content -->
 
 
 
 
-</font></font></font></font></font></font></font></font></font></font></font></body></html>
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></body></html>
