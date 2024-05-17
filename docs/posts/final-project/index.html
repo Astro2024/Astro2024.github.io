@@ -227,15 +227,13 @@ background-size: cover;
 </div>
 </div>
 <p><font size="6"> Abstract: <font></font></font></p><font size="6"><font>
-<p>Problem:</p>
-<p>Goals:</p>
-<p>Hypothesis:</p>
-<p>Feature Types:</p>
+<p><font size="3"> For our final project Alec and I decided to try our hand at one of the most difficult/lucrative quantitative problems in the world, predicting the stock market. To make our life easier we chose to simplify the problem slightly and only try to predict the direction a stocks price would move, rather than predicting the magnitude and direction of the move. This not only simplified the format and type of our model, but also the practical analysis of how well our predictions work on the stock market. Coming into the project we had four different market models we wanted to try with 4 different variations in the size and number of predictive features we used. The four market models we examined were a single model trained on the entire market, a single model trained only on the companies who rank in the bottom third of volatility, a model trained individually for each company in the entire market, and a model trained individually for each company in the bottom third of volatility. For each of these set ups we explored the results of training on one year of data versus two years versus one year with polynomial feature mapping versus two years with polynomial feature mapping. Before we actually coded the various models, we hypothesized that our low volatility models would perform more consistently than the entire market, and that our models trained and tested for specific companies would perform better than the single models trained on the entire/partial market.</font></p><font size="3">
+<p>In the code, text, and analysis that follows we will explore our journey gathering and cleaning data, developing feature functions to transform our data, creating our code framework, running the models, and analyzing the quantitative results/trends. <font></font></p><font>
 <p><font size="6"> Data Collection: <font></font></font></p><font size="6"><font>
-<p><font size="3"> Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each companies has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features. <font></font></font></p><font size="3"><font>
+<p><font size="3"> Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each company has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features. <font></font></font></p><font size="3"><font>
 <p><font size="6"> Functions/Indicators: <font></font></font></p><font size="6"><font>
 <p><font size="3"> https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/functions.py <font></font></font></p><font size="3"><font>
-<p><font size="3"> The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project. <font></font></font></p><font size="3"><font>
+<p><font size="3"> The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project. <font></font></font></p><font size="3"><font>
 <div id="cell-10" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loaddata(name: <span class="bu">str</span>, start_date <span class="op">=</span> <span class="dv">20100104</span>, end_date <span class="op">=</span> <span class="dv">20211231</span>):</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    dates <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/dates.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
@@ -243,7 +241,7 @@ background-size: cover;
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data.loc[:, start_date:end_date]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><font size="3"> The next function we built out transforms price data into a MACD indicator. As we discussed above, the moving average convergence/divergence indicator is on of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. We will show how the MACD indicator can be used as an indicator for stock trading.</font></p><font size="3">
+<p><font size="3"> The next function we built transforms price data into a MACD indicator. The moving average convergence/divergence indicator is one of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. Later, we will show how the MACD indicator can be used as an indicator for stock trading.</font></p><font size="3">
 <p>If anyone is interested in learning more about this stock indicator I have attached a link to a basic overview: https://www.investopedia.com/terms/m/macd.asp <font></font></p><font>
 <div id="cell-12" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> MACD(data: pd.DataFrame, ema_long: <span class="bu">int</span>, ema_short: <span class="bu">int</span>, signal_length: <span class="bu">int</span>):</span>
@@ -254,7 +252,7 @@ background-size: cover;
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> macd <span class="op">-</span> signal</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><font size="3"> The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold” allow traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp <font></font></font></p><font size="3"><font>
+<p><font size="3"> The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold”, which allows traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp <font></font></font></p><font size="3"><font>
 <div id="cell-14" class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> RSI(data: pd.DataFrame, period: <span class="bu">int</span>):</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    rsi_values <span class="op">=</span> []</span>
@@ -278,7 +276,7 @@ background-size: cover;
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">100</span> <span class="op">-</span> (<span class="dv">100</span><span class="op">/</span>(<span class="dv">1</span><span class="op">+</span>RS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><font size="5"> MACD And RSI In Use: <font></font></font></p><font size="5"><font>
-<p><font size="3"></font></p><font size="3">
+<p><font size="3"> Below we demonstraight how RSI and MACD indicators are traditionally graphed/used for stock trading <font></font></font></p><font size="3"><font>
 <div id="cell-17" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Randomly selected company</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>comp <span class="op">=</span> <span class="dv">1003</span></span>
@@ -766,7 +764,8 @@ YoY:  0.2772630028562012</code></pre>
 </div>
 <p><font size="3"> I will discuss more general trends across all models later in the blog post. For now we will make some preliminary observations about the Total Market Model. Our Total Market Model made considerable profit most years we tested the data on. Both 2017 and 2018 were considerably worse years than the rest with former being worse than the latter. For most of the years it seems like our polynomial feature mapping improves the one year variation, yet fails to show consistent improvement for our two year variation. At this point it is difficult to see a very strong correlation between the modals accuracy and its profit. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Low Volatility Market Model: <font></font></font></p><font size="5"><font>
-<div id="cell-58" class="cell">
+<p><font size="3"> <font></font></font></p><font size="3"><font>
+<div id="cell-59" class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -812,7 +811,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>    lv_max_accuracies.append(max_accuracy)</span>
 <span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a>    lv_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-59" class="cell" data-execution_count="54">
+<div id="cell-60" class="cell" data-execution_count="54">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -854,7 +853,8 @@ YoY:  0.2772630028562012</code></pre>
 </div>
 <p><font size="3"> The low volatility market models are trained and tested on only a third of our companies so it is expected that the profits made will be close to a third of the entire market. However, since these companies are in the bottom third of volatility there price movement will be smaller, so we can assume our models will make slightly less than one third. So, what stands out in this model is how successful we are in 2017 compared to the total market model. Across all variations it seems like we are almost matching the profit of the total market model. The only year that does not look promising is 2018. But, other than that, all of the years seem like they are representative of what they should be. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Total Market w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
-<div id="cell-62" class="cell">
+<p><font size="3"> <font></font></font></p><font size="3"><font>
+<div id="cell-64" class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -900,7 +900,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>    tmi_max_accuracies.append(max_accuracy)</span>
 <span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>    tmi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-63" class="cell" data-execution_count="52">
+<div id="cell-65" class="cell" data-execution_count="52">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -942,7 +942,8 @@ YoY:  0.2772630028562012</code></pre>
 </div>
 <p><font size="3"> Our total market w/ independent models does not live up to the expectations we expressed in our hypotheses. Compared to a single model the individual models makes considerably less money. It’s performance in 2017 is the worst we have seen yet. One of the questions that we begin to have is “why do we lose so much money if we have such a considerably normal mean accuracy?” The simple answer is that the market was rather turbulent in 2017 and the price movement was larger, on average, when we made an incorrect guess, than when we made a correct guess. Another thing to note, is that since we are training a model for each company, there are considerably less data points to train on. In fact, when training on one year of data, a single company only has around 240 data points, while the total market model has over one 1,000,000. I suspect this is the main contributor to why our individual models do so much more poorly than the total market model. I also think that the size of the training data is why, when we use polynomial feature mapping and more years of training data, our profit is noticeably higher. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Low Volatility w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
-<div id="cell-66" class="cell">
+<p><font size="3"> <font></font></font></p><font size="3"><font>
+<div id="cell-69" class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -988,7 +989,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>    lvi_max_accuracies.append(max_accuracy)</span>
 <span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>    lvi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-67" class="cell" data-execution_count="53">
+<div id="cell-70" class="cell" data-execution_count="53">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -1030,11 +1031,13 @@ YoY:  0.2772630028562012</code></pre>
 </div>
 <p><font size="3"> Everything discussed about the Total Market w/ Individual Models with respect to more data equals better results seems to be exemplified here. Maybe the trend is easier to see because we are only testing on low volatility stocks, but as 2 year has more data than 1 year, 1 year poly has more data than 2 year, 2 year poly has more data than 1 year poly, and our profit increase across all years roughly in that order. While the profit for this model is not as impressive as the other models, it has some of the most consistent results across variations. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Trends Across Models: <font></font></font></p><font size="5"><font>
+<p><font size="3"> <font></font></font></p><font size="3"><font>
 <p><font size="6"> Conclusion: <font></font></font></p><font size="6"><font>
+<p><font size="3"> <font></font></font></p><font size="3"><font>
 
 
 
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="6"><font size="4"><font size="4"><font size="6"><font size="3"><font size="5"><font size="3"><font size="5"><font size="3"><font><font size="5"><font><font size="6"><font> <!-- /main -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font size="3"><font size="5"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1422,7 +1425,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></div><font size="6"><font size="4"><font size="4"><font size="6"><font size="3"><font size="5"><font size="3"><font size="5"><font size="3"><font><font size="5"><font><font size="6"><font> <!-- /content -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></div><font size="6"><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font size="3"><font size="5"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /content -->
 
 
 
