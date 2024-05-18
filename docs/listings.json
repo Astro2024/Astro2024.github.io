@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/end-of-course/end-of-course.html",
       "/posts/goal-setting/index.html",
       "/posts/final-project/index.html",
       "/posts/newtons-method/index.html",
