@@ -57,7 +57,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -231,7 +251,7 @@ background-size: cover;
 <p><font size="3"> In the code, text, and analysis that follows we will explore our journey gathering and cleaning data, developing feature functions to transform our data, creating our code framework, running the models, and analyzing the quantitative results/trends. <font></font></font></p><font size="3"><font>
 <p><font size="6"> Introduction <font></font></font></p><font size="6"><font>
 <p><font size="3"> A classic prediction problem is forecasting in financial markets. Given some set of stocks, can we predict their price tomorrow? With the amount of data on markets, this should be an easy task. However, since the inception of stock exchanges individuals have been trying-and failing. Even the great mathematician Isaac Newton tried his hand at the stock market, remarking that “I can calculate the movement of the stars, but not the madness of men.”</font></p><font size="3">
-<p>Around the mid 20th century, finance began to take an a more formal academic tone as mathematical concepts were integrated into the discipline. Fischer Black and Myron Scholes described a method for determining the fair price of a call option. Harry Markowitz developed “Mean Variance Analysis,” which converted portfolio analysis into a traditional optimization problem. In the late 90’s, Fischer Black and Robert Litterman utilized Bayesian statistics as a means to integrate historic market data with investor forecasts, pioneering the Black-Litterman model. Unsurprisingly, as machine learning methods made their way out of academia and into mainstream use, finance was one of the first fields to pick them up. These methods have proven so disruptive to the discipline that they have spawned their own sub-field: quantitative finance (“quant funds”).</p>
+<p>Around the mid 20th century, finance began to take an a more formal academic tone as mathematical concepts were integrated into the discipline. Fischer Black and Myron Scholes described a method for determining the fair price of a call option <span class="citation" data-cites="chouwall">(<a href="#ref-chouwall" role="doc-biblioref">Chou, n.d.</a>)</span>. Harry Markowitz developed “Mean Variance Analysis,” which converted portfolio analysis into a traditional optimization problem <span class="citation" data-cites="fahmy2020mean">(<a href="#ref-fahmy2020mean" role="doc-biblioref">Fahmy 2020</a>)</span>. In the late 90’s, Fischer Black and Robert Litterman utilized Bayesian statistics as a means to integrate historic market data with investor forecasts, pioneering the Black-Litterman model <span class="citation" data-cites="kolm2021black">(<a href="#ref-kolm2021black" role="doc-biblioref">Kolm, Ritter, and Simonian 2021</a>)</span>. Unsurprisingly, as machine learning methods made their way out of academia and into mainstream use, finance was one of the first fields to pick them up. These methods have proven so disruptive to the discipline that they have spawned their own sub-field: quantitative finance (“quant funds”).</p>
 <p>Despite the copious amount of data on modern markets and accessability of modern M-L techniques, forecasting actual percent changes in any asset is hard. For a single asset, there are a near infinite number of values that it could take on over a single time frame. If we put this in the context of a modest portfolio of assets, then a probability of success becomes even smaller. Regression can facilitate more sophisticated market strategies, but it comes at the cost of a baseline level of precision. Hence, to make things easier, we reduce a regression problem to a classification problem. Rather than the predict the actual price movement of a given asset, we only need to predict three things: Whether it will go up, go down, or we are unsure. If we can do this, then we can buy the stock when we think it will go up, short the stock (sell then buy back) when we think it will go down, and get rid of it if we are unsure. This is called flip trading.</p>
 <p>In this blog post, we will demonstrate how to implement a flip trading model using logistic regression, feature mapping, and some basic financial indicators. We then test the model on daily, Chinese market data from 2017 - 2022. Hence, without further delay, let go attempt to calculate the madness of men. <font></font></p><font>
 <p><font size="6"> Data Collection: <font></font></font></p><font size="6"><font>
@@ -1061,7 +1081,18 @@ YoY:  0.2772630028562012</code></pre>
 
 
 
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="4"><font size="4"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /main -->
+
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-chouwall" class="csl-entry" role="listitem">
+Chou, Mike. n.d. <span>“Wall Street Rocket Science: Black-Scholes and Beyond.”</span>
+</div>
+<div id="ref-fahmy2020mean" class="csl-entry" role="listitem">
+Fahmy, Hany. 2020. <span>“Mean-Variance-Time: An Extension of Markowitz’s Mean-Variance Portfolio Theory.”</span> <em>Journal of Economics and Business</em> 109: 105888.
+</div>
+<div id="ref-kolm2021black" class="csl-entry" role="listitem">
+Kolm, Petter N, Gordon Ritter, and Joseph Simonian. 2021. <span>“Black–Litterman and Beyond: The Bayesian Paradigm in Investment Management.”</span> <em>The Journal of Portfolio Management</em> 47 (5): 91–113.
+</div>
+</div></section></div></main><font size="4"><font size="4"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
