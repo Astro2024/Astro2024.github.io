@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="James Hetherington">
-<meta name="dcterms.date" content="2024-05-16">
+<meta name="dcterms.date" content="2024-05-17">
 <meta name="description" content="A blog post exploring various stock price movement models">
 
 <title>My Awesome CSCI 0451 Blog - Final Project Blog Post</title>
@@ -190,7 +190,7 @@ background-size: cover;
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">May 16, 2024</p>
+        <p class="date">May 17, 2024</p>
       </div>
     </div>
     
@@ -225,15 +225,21 @@ background-size: cover;
   %reload_ext autoreload</code></pre>
 </div>
 </div>
+<p>Shared Repository: https://github.com/a1kyritsis/flipr</p>
 <p><font size="6"> Abstract: <font></font></font></p><font size="6"><font>
 <p><font size="3"> For our final project Alec and I decided to try our hand at one of the most difficult/lucrative quantitative problems in the world, predicting the stock market. To make our life easier we chose to simplify the problem slightly and only try to predict the direction a stocks price would move, rather than predicting the magnitude and direction of the move. This not only simplified the format and type of our model, but also the practical analysis of how well our predictions work on the stock market. Coming into the project we had four different market models we wanted to try with 4 different variations in the size and number of predictive features we used. The four market models we examined were a single model trained on the entire market, a single model trained only on the companies who rank in the bottom third of volatility, a model trained individually for each company in the entire market, and a model trained individually for each company in the bottom third of volatility. For each of these set ups we explored the results of training on one year of data versus two years versus one year with polynomial feature mapping versus two years with polynomial feature mapping. Before we actually coded the various models, we hypothesized that our low volatility models would perform more consistently than the entire market, and that our models trained and tested for specific companies would perform better than the single models trained on the entire/partial market. <font></font></font></p><font size="3"><font>
 <p><font size="3"> In the code, text, and analysis that follows we will explore our journey gathering and cleaning data, developing feature functions to transform our data, creating our code framework, running the models, and analyzing the quantitative results/trends. <font></font></font></p><font size="3"><font>
+<p><font size="6"> Introduction <font></font></font></p><font size="6"><font>
+<p><font size="3"> A classic prediction problem is forecasting in financial markets. Given some set of stocks, can we predict their price tomorrow? With the amount of data on markets, this should be an easy task. However, since the inception of stock exchanges individuals have been trying-and failing. Even the great mathematician Isaac Newton tried his hand at the stock market, remarking that “I can calculate the movement of the stars, but not the madness of men.”</font></p><font size="3">
+<p>Around the mid 20th century, finance began to take an a more formal academic tone as mathematical concepts were integrated into the discipline. Fischer Black and Myron Scholes described a method for determining the fair price of a call option. Harry Markowitz developed “Mean Variance Analysis,” which converted portfolio analysis into a traditional optimization problem. In the late 90’s, Fischer Black and Robert Litterman utilized Bayesian statistics as a means to integrate historic market data with investor forecasts, pioneering the Black-Litterman model. Unsurprisingly, as machine learning methods made their way out of academia and into mainstream use, finance was one of the first fields to pick them up. These methods have proven so disruptive to the discipline that they have spawned their own sub-field: quantitative finance (“quant funds”).</p>
+<p>Despite the copious amount of data on modern markets and accessability of modern M-L techniques, forecasting actual percent changes in any asset is hard. For a single asset, there are a near infinite number of values that it could take on over a single time frame. If we put this in the context of a modest portfolio of assets, then a probability of success becomes even smaller. Regression can facilitate more sophisticated market strategies, but it comes at the cost of a baseline level of precision. Hence, to make things easier, we reduce a regression problem to a classification problem. Rather than the predict the actual price movement of a given asset, we only need to predict three things: Whether it will go up, go down, or we are unsure. If we can do this, then we can buy the stock when we think it will go up, short the stock (sell then buy back) when we think it will go down, and get rid of it if we are unsure. This is called flip trading.</p>
+<p>In this blog post, we will demonstrate how to implement a flip trading model using logistic regression, feature mapping, and some basic financial indicators. We then test the model on daily, Chinese market data from 2017 - 2022. Hence, without further delay, let go attempt to calculate the madness of men. <font></font></p><font>
 <p><font size="6"> Data Collection: <font></font></font></p><font size="6"><font>
 <p><font size="3"> Arguably the hardest part of this project was collecting the data, transferring it into a file format that is easily accessible, and then creating functions that can be easily and functionally used. Our data set is made up of 4,752 companies in China. Each company has 21 years worth of daily data for 28 different metrics. In total that is over 670,000,000 data points. We saved each of the different metrics as CSV files composed of DataFrames holding all the values for each company over 21 years. All of the raw data was generously provided to us by Professor Scott Smallwood, who runs a quantitative trading fund. His fund paid for this data through a stock broker agency. Below we will explore some of the functions we used to access the data and transform it into useful features. <font></font></font></p><font size="3"><font>
 <p><font size="6"> Functions/Indicators: <font></font></font></p><font size="6"><font>
 <p><font size="3"> https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/functions.py <font></font></font></p><font size="3"><font>
 <p><font size="3"> The first function in our function.py file is called “loaddata”. As parameters it takes the shortened name of our companies metrics, a start date, and an end date. After we feed it the inputs it opens up the designated CSV file and creates/returns a dataframe to store all of the data. This was probably the most used function in our entire project. <font></font></font></p><font size="3"><font>
-<div id="cell-10" class="cell" data-execution_count="1">
+<div id="cell-13" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loaddata(name: <span class="bu">str</span>, start_date <span class="op">=</span> <span class="dv">20100104</span>, end_date <span class="op">=</span> <span class="dv">20211231</span>):</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    dates <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/dates.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> pd.read_csv(<span class="st">"Data_Files/"</span><span class="op">+</span>  name <span class="op">+</span> <span class="st">".csv"</span>, header<span class="op">=</span><span class="va">None</span>, names<span class="op">=</span>dates.T.values.tolist()[<span class="dv">0</span>])</span>
@@ -242,7 +248,7 @@ background-size: cover;
 </div>
 <p><font size="3"> The next function we built transforms price data into a MACD indicator. The moving average convergence/divergence indicator is one of the most popular indicators in the world for trading. This function takes in price data, a specified length for the long and short exponential moving average, and the period length for an exponential moving average of the difference between our long and short ema curves. Fortunately, pandas DataFrames have a built in exponential moving average function, so the majority of the MACD is easy to calculate. Later, we will show how the MACD indicator can be used as an indicator for stock trading.</font></p><font size="3">
 <p>If anyone is interested in learning more about this stock indicator I have attached a link to a basic overview: https://www.investopedia.com/terms/m/macd.asp <font></font></p><font>
-<div id="cell-12" class="cell" data-execution_count="4">
+<div id="cell-15" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> MACD(data: pd.DataFrame, ema_long: <span class="bu">int</span>, ema_short: <span class="bu">int</span>, signal_length: <span class="bu">int</span>):</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">long</span> <span class="op">=</span> data.ewm(span<span class="op">=</span>ema_long, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    short <span class="op">=</span> data.ewm(span<span class="op">=</span>ema_short, ignore_na<span class="op">=</span><span class="va">True</span>).mean()</span>
@@ -252,7 +258,7 @@ background-size: cover;
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> macd <span class="op">-</span> signal</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><font size="3"> The last function we use in our model is called the Relative Strength Indicator or RSI for short. This indicator measures whether a stock is “overbought” or “oversold”, which allows traditional trader gain insights into incoming trends in the market. Because of the format of our data, this version of rsi is slightly modified to allow for a shorter time frame of data, however, because of this the first 15-20 RSI values might not the most significant. In fact, most RSI indicators take a while to “warm up” before there prediction is considered “good”. For more information about the RSI indicator you can read the article from this link: https://www.investopedia.com/terms/r/rsi.asp <font></font></font></p><font size="3"><font>
-<div id="cell-14" class="cell">
+<div id="cell-17" class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> RSI(data: pd.DataFrame, period: <span class="bu">int</span>):</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    rsi_values <span class="op">=</span> []</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    cleaned <span class="op">=</span> data</span>
@@ -276,7 +282,7 @@ background-size: cover;
 </div>
 <p><font size="5"> MACD And RSI In Use: <font></font></font></p><font size="5"><font>
 <p><font size="3"> Below we demonstraight how RSI and MACD indicators are traditionally graphed/used for stock trading <font></font></font></p><font size="3"><font>
-<div id="cell-17" class="cell" data-execution_count="13">
+<div id="cell-20" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Randomly selected company</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>comp <span class="op">=</span> <span class="dv">1003</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Get price data</span></span>
@@ -314,7 +320,7 @@ background-size: cover;
 </div>
 <p><font size="6"> Baseline Model: <font></font></font></p><font size="6"><font>
 <p><font size="3"> In order to try an evaluate the various models we are going to explore later in this blog post we must first set a base line to compare our results to. To do this we will take our MACD indicator, apply it to every company over a set period of time, and buy/sell the stock depending on if the MACD is positive or negative. <font></font></font></p><font size="3"><font>
-<div id="cell-20" class="cell" data-execution_count="29">
+<div id="cell-23" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="dv">20210101</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> [<span class="dv">2016</span>,<span class="dv">2017</span>,<span class="dv">2018</span>,<span class="dv">2019</span>,<span class="dv">2020</span>]</span>
@@ -370,7 +376,7 @@ background-size: cover;
 <p>Link to code: https://github.com/Astro2024/Astro2024.github.io/blob/main/posts/final-project/simple_model.py <font></font></p><font>
 <p><font size="5"> Helper Functions: <font></font></font></p><font size="5"><font>
 <p><font size="3"> Before we even reach the model we need to define two functions. The first records whether or not a value is positive, negative, or zero. We use this function to create our labels for the Logistic Regression. The second function returns the ln value of an element of an array. We need to define this function to reduce the volume, which tends to be vary large, down to log space so the models weights are more manageable and less likely to have floating point errors. <font></font></font></p><font size="3"><font>
-<div id="cell-25" class="cell" data-execution_count="8">
+<div id="cell-28" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sign(x):</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="op">&gt;</span> <span class="dv">0</span>:</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span></span>
@@ -387,7 +393,7 @@ background-size: cover;
 </div>
 <p><font size="5"> Parameters <font></font></font></p><font size="5"><font>
 <p><font size="3"> Our model function takes 8 different parameters: <font></font></font></p><font size="3"><font>
-<div id="cell-28" class="cell">
+<div id="cell-31" class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>stock_prediction_model(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>        training_period_start <span class="op">=</span> <span class="dv">20180101</span>, </span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        training_period_end <span class="op">=</span> <span class="dv">20190101</span>,</span>
@@ -404,7 +410,7 @@ background-size: cover;
 <p>The last parameter is solely for practical use in this blog post. It toggles whether the function will print out results or return them. <font></font></p><font>
 <p><font size="5"> Initializing data: <font></font></font></p><font size="5"><font>
 <p><font size="3"> Now that we have an understanding of the parameters, let’s move our attention to the first section of code where we initialize all of our data. The comments in the following code explains what each line is/what it is used for. <font></font></font></p><font size="3"><font>
-<div id="cell-32" class="cell">
+<div id="cell-35" class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates our Polynomial feature mapping function of degree "polynomial_features"</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>poly <span class="op">=</span> PolynomialFeatures(polynomial_features) <span class="co"># type: ignore</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes a list we will use to record the profit/loss of each company</span></span>
@@ -461,7 +467,7 @@ background-size: cover;
 <p><font size="5"> Single Model: <font></font></font></p><font size="5"><font>
 <p><font size="4"> Data Rransformation and Training: <font></font></font></p><font size="4"><font>
 <p><font size="3"> The next part of our function transforms our “raw” data into features we want to use in order to predict whether the raw residual return will move up our down. The before the polynomial transformation the five features we are using for the model are yesterday’s intraday market neutral residual returns, last night’s market neutral residual returns, yesterday’s volume mapped to log space, a RSI indicator, and a MACD indicator. <font></font></font></p><font size="3"><font>
-<div id="cell-36" class="cell">
+<div id="cell-39" class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">""" TRAINING DATA AND MODEL """</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Iterates though every company in the designated market</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#4752 companies if total_market = True, around 1200-1300 companies if total_market = False</span></span>
@@ -507,7 +513,7 @@ background-size: cover;
 </div>
 <p><font size="4"> Model Testing: <font></font></font></p><font size="4"><font>
 <p><font size="3"> The code for testing the model is very similar to the training code, because we need to transform the “raw” data again. One thing you will notice in the code above and below is that we only train and test on companies that have more than 100 valid days of data. This is to ensure we are only adding data that might be representative of the market in that year. <font></font></font></p><font size="3"><font>
-<div id="cell-39" class="cell">
+<div id="cell-42" class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">""" </span><span class="al">TESTING</span><span class="co"> DATA AND MODEL """</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Check shape of data and makes sure there is no cheating</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> total_market <span class="op">==</span> <span class="va">True</span>:<span class="co"># type: ignore</span></span>
@@ -571,7 +577,7 @@ background-size: cover;
 </div>
 <p><font size="5"> Individual Model Per Company: <font></font></font></p><font size="5"><font>
 <p><font size="3"> The code below is the same code as above just reordered so that we train and test a new model for each individual company. Because we are training multiple models in this case, our functions runtime gets significantly longer. <font></font></font></p><font size="3"><font>
-<div id="cell-42" class="cell">
+<div id="cell-45" class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Iterates though every company in the designated market</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> indices:</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    total_made <span class="op">=</span> <span class="dv">0</span></span>
@@ -640,7 +646,7 @@ background-size: cover;
 </div>
 <p><font size="5"> Print/Return Statements: <font></font></font></p><font size="5"><font>
 <p><font size="3"> The final part of our model function is choosing whether or not we want to print out the effectiveness of our model or return specific metrics. In “print mode” we print out the mean, max, and min accuracy of our model, the percent of data with correct labels, how often we correctly predict whether the price will move up or down, the amount of money our model/s makes over the testing time frame, a very crude estimate of what initial funding is required for the model to be successful, and lastly the percent return we made. All of these act as a quick and easy way to evaluate the effectiveness of our model. In the “return mode” we only return the mean, max, and min accuracy of our model, and the amount of money made. We chose these metrics because they are ideal metrics to create graphs for comparing different models over various time frames. <font></font></font></p><font size="3"><font>
-<div id="cell-45" class="cell">
+<div id="cell-48" class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> print_results <span class="op">==</span> <span class="va">True</span>:<span class="co"># type: ignore</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Mean Score: "</span>, <span class="bu">sum</span>(chk)<span class="op">/</span><span class="bu">len</span>(chk))</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Max Score: "</span>, <span class="bu">max</span>(chk))</span>
@@ -658,7 +664,7 @@ background-size: cover;
 <p><font size="5"> Generic Example: <font></font></font></p><font size="5"><font>
 <p><font size="3"> Now that we have gone over how we got our data, built function to transform it, and then built a model function using the transformed data, let switch our attention over to the results of our experiments.</font></p><font size="3">
 <p>We can start by testing how a single model does when it is trained on the entirety of 2018 data to predict 2019 and we do not use a polynomial feature map. <font></font></p><font>
-<div id="cell-49" class="cell" data-execution_count="9">
+<div id="cell-52" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>stock_prediction_model(<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>,<span class="va">True</span>,<span class="va">False</span>,<span class="dv">1</span>,<span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Mean Score:  0.5230379952213283
@@ -675,7 +681,7 @@ YoY:  0.2772630028562012</code></pre>
 <p><font size="3"> Now lets evaluate the result of our four different models. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Total Market Model: <font></font></font></p><font size="5"><font>
 <p><font size="3"> Within each “general model” defined by the heading above (Total Market Model in this case), we specify four different variations of the model. The first variation is a model trained on one one year of data trying to predict the next year (blue label). The second variation is a model trained on two years of date to predict the next year (red label). The third variation is a model trained on one year of data with polynomial feature mapping of the second degree to predict the next year using the same polynomial feature map (green label). The fourth and final variation is the same as the third but trained on two year of data instead of one (black label). In the following figures there are two separate graphs corresponding to the success/accuracy of the four variations of our model over a five year time span. The top graph shows you the profit each variation would have made each year. The bottom graph visualizes the maximum, mean, and minimum accuracy across the companies in our designated market for each variation on a given year. The minimum is signified by the bottom break in the bar, the middle break is the mean, and the top of the bar is the max accuracy. <font></font></font></p><font size="3"><font>
-<div id="cell-54" class="cell">
+<div id="cell-57" class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Initializes Training and Testing Periods</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -728,7 +734,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>    tm_max_accuracies.append(max_accuracy)</span>
 <span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>    tm_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-55" class="cell" data-execution_count="55">
+<div id="cell-58" class="cell" data-execution_count="55">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Initialize figure and plots</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Define offset x values to create proper spacing for bar graph groups</span></span>
@@ -773,7 +779,7 @@ YoY:  0.2772630028562012</code></pre>
 <p><font size="3"> I will discuss more general trends across all models later in the blog post. For now we will make some preliminary observations about the Total Market Model. Our Total Market Model made considerable profit most years we tested the data on. Both 2017 and 2018 were considerably worse years than the rest with former being worse than the latter. For most of the years it seems like our polynomial feature mapping improves the one year variation, yet fails to show consistent improvement for our two year variation. At this point it is difficult to see a very strong correlation between the modals accuracy and its profit. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Low Volatility Market Model: <font></font></font></p><font size="5"><font>
 <p><font size="3"> <font></font></font></p><font size="3"><font>
-<div id="cell-59" class="cell">
+<div id="cell-62" class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -819,7 +825,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>    lv_max_accuracies.append(max_accuracy)</span>
 <span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a>    lv_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-60" class="cell" data-execution_count="54">
+<div id="cell-63" class="cell" data-execution_count="54">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -862,7 +868,7 @@ YoY:  0.2772630028562012</code></pre>
 <p><font size="3"> The low volatility market models are trained and tested on only a third of our companies so it is expected that the profits made will be close to a third of the entire market. However, since these companies are in the bottom third of volatility there price movement will be smaller, so we can assume our models will make slightly less than one third. So, what stands out in this model is how successful we are in 2017 compared to the total market model. Across all variations it seems like we are almost matching the profit of the total market model. The only year that does not look promising is 2018. But, other than that, all of the years seem like they are representative of what they should be. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Total Market w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
 <p><font size="3"> <font></font></font></p><font size="3"><font>
-<div id="cell-64" class="cell">
+<div id="cell-67" class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -908,7 +914,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>    tmi_max_accuracies.append(max_accuracy)</span>
 <span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>    tmi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-65" class="cell" data-execution_count="52">
+<div id="cell-68" class="cell" data-execution_count="52">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -951,7 +957,7 @@ YoY:  0.2772630028562012</code></pre>
 <p><font size="3"> Our total market w/ independent models does not live up to the expectations we expressed in our hypotheses. Compared to a single model the individual models makes considerably less money. It’s performance in 2017 is the worst we have seen yet. One of the questions that we begin to have is “why do we lose so much money if we have such a considerably normal mean accuracy?” The simple answer is that the market was rather turbulent in 2017 and the price movement was larger, on average, when we made an incorrect guess, than when we made a correct guess. Another thing to note, is that since we are training a model for each company, there are considerably less data points to train on. In fact, when training on one year of data, a single company only has around 240 data points, while the total market model has over one 1,000,000. I suspect this is the main contributor to why our individual models do so much more poorly than the total market model. I also think that the size of the training data is why, when we use polynomial feature mapping and more years of training data, our profit is noticeably higher. <font></font></font></p><font size="3"><font>
 <p><font size="5"> Low Volatility w/ Individual Models Per Company: <font></font></font></p><font size="5"><font>
 <p><font size="3"> <font></font></font></p><font size="3"><font>
-<div id="cell-69" class="cell">
+<div id="cell-72" class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>training_starts <span class="op">=</span> [<span class="dv">20150101</span>,<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>]</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>training_ends <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>testing_starts <span class="op">=</span> [<span class="dv">20160101</span>,<span class="dv">20170101</span>,<span class="dv">20180101</span>,<span class="dv">20190101</span>,<span class="dv">20200101</span>]</span>
@@ -997,7 +1003,7 @@ YoY:  0.2772630028562012</code></pre>
 <span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>    lvi_max_accuracies.append(max_accuracy)</span>
 <span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>    lvi_min_accuracies.append(min_accuracy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-70" class="cell" data-execution_count="53">
+<div id="cell-73" class="cell" data-execution_count="53">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">2</span>, figsize <span class="op">=</span> (<span class="dv">12</span>,<span class="dv">9</span>))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>br1 <span class="op">=</span> np.arange(<span class="bu">len</span>(years)) </span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>br2 <span class="op">=</span> [x <span class="op">+</span> <span class="fl">.2</span> <span class="cf">for</span> x <span class="kw">in</span> br1] </span>
@@ -1047,11 +1053,15 @@ YoY:  0.2772630028562012</code></pre>
 <p>Given the known harms, why did we decide to build this model in the first place? One generic–but truthful–answer is that any technological advancement when taken to its logical extreme can be shown to demonstrate harm. Second, and perhaps more appropriate for this particular model, is that finance is often gate kept behind technical jargon, proprietary trading strategies, and social class. By provide an intuitive and free introduction to financial modeling, we hope to make it accessible to a wider audience and encourage more diverse interest in the subject matter. <font></font></p><font>
 <p><font size="6"> Conclusion: <font></font></font></p><font size="6"><font>
 <p><font size="3"> After all of our analysis we now get to reflect back on our goals and hypotheses that we stated in the beginning of this blog post. At the start of this process we had two main hypotheses. The first was that our individualized models would perform better than a singular model trained on the entire market. And second, our models would be more consistent when trained on the low volatility market compared to the the entire market. Our first hypothesis was completely incorrect. The single models made more money than the individual models in every year and variation. We have already discussed how the size of our training data is probably why our hypothesis failed, so for future analysis I would to collect more data and train these individualized models on three to five years of data rather than just one or two. I suspect that while our results might not get better than the single models, we will see a marked increase in profit for each year of data we add. Our second hypothesis was mostly correct. While it is hard to quantify “consistency” in the stock market I would argue our low volatility models had the most consistent scores and did not lose money when the entire market models did. In further analysis I would also love to explore the behavior of the middle and higher risk stocks to see where our model is most successful and if we even need to break down the risk percentiles further. <font></font></font></p><font size="3"><font>
-<p><font size="3"> I think the two most important lessons I learned in the process of completing this code and analysis is that an accuracy does not necessarily need to be high or low to be good or bad and that if you are willing to put the time and energy into experimenting, you will be able to improve your findings. So, looking forward, I want to continue experimenting with this data to find new useful features and improve our yearly profit. An initial step I would take to achieve this is to normalize the features so that we can do higher dimensional feature mapping with out the risk of floating point errors and outrageous weights. I would also try to integrate in algorithms we could use to optimize the parameters for our price indicators, because while it is nice to think we can just improve our prediction by adding in new features, it would be naive to think our current features can’t be improved. Lastly, I just want to make a call back to our baseline model. Other than 2017, we were able to successfully create a model that outperformed our baseline every year. So, while the results might not have been as profound or conclusive as every aspiring quantitative trader might have hoped, we were able to design and test a model that was both function and “successful”. <font></font></font></p><font size="3"><font>
+<p><font size="6"> Group Contributions: <font></font></font></p><font size="6"><font>
+<p><font size="3"> The majority of raw data collection and formatting was performed by James. He took a class with Professor Smallwood (provider of data) and got access to data through middfiles which is only accessible if you have taken the class. From this point onwards we both worked on trying to develope a frame work for our predictive model. Using two different approaches we eventually decided on using the model designed by James because it was bug free earlier than Alec’s model. After we hade the code framework set up James created the training loops and visualizations to represent profit and accuracy for different models. These training loops and visualizations ended up taking around 2+ hours to make for each of our four models so while James was running one model he started writing our the descriptions of the functions utilized by the model. Because James did a lot of the training and visualizations Alec wrote out the introduction, critical discussion, and added a significant section to his blog post on the initial approach he had been pursuing.</font></p><font size="3">
+<p>I think something that is important to acknowledge is that if you look solely at the commits for final_project_blog_post.ipynb it might seem like James wrote out most of the code used for the final post. However, a major aspect of this project we were not able to fully implement/describe in the final product is the portfolio.py file Alec spent a lot of time coding, debugging, rewriting, and trying to troubleshoot. This file is utilized slightly in Alec’s blog post but for the amount of time and effort he put into it, a commit history will not give him the credit he is due. <font></font></p><font>
+<p><font size="6"> Personal Reflection <font></font></font></p><font size="6"><font>
+<p><font size="3"> I think the two most important lessons I learned in the process of completing this code and analysis is that an accuracy does not necessarily need to be high or low to be good or bad and that if you are willing to put the time and energy into experimenting, you will be able to improve your findings. So, looking forward, I want to continue experimenting with this data to find new useful features and improve our yearly profit. An initial step I would take to achieve this is to normalize the features so that we can do higher dimensional feature mapping with out the risk of floating point errors and outrageous weights. I would also try to integrate in algorithms we could use to optimize the parameters for our price indicators, because while it is nice to think we can just improve our prediction by adding in new features, it would be naive to think our current features can’t be improved. Lastly, I just want to make a call back to our baseline model. Other than 2017, we were able to successfully create a model that outperformed our baseline every year. So, while the results might not have been as profound or conclusive as every aspiring quantitative trader might have hoped, we were able to design and test a model that was both functioning and successful. <font></font></font></p><font size="3"><font>
 
 
 
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font><font size="3"><font><font size="3"><font> <!-- /main -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></font></main><font size="4"><font size="4"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1439,7 +1449,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
-</font></font></font></font></font></font></font></font></font></font></font></font></font></font></div><font size="4"><font size="4"><font size="6"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font><font size="3"><font><font size="3"><font> <!-- /content -->
+</font></font></font></font></font></font></font></font></font></font></font></font></font></font></div><font size="4"><font size="4"><font size="5"><font size="5"><font size="5"><font size="6"><font size="3"><font size="6"><font size="3"><font><font size="6"><font><font size="3"><font> <!-- /content -->
 
 
 
